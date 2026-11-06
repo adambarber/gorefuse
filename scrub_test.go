@@ -92,3 +92,28 @@ func TestBidiOverridePassesThrough(t *testing.T) {
 		t.Fatalf("Error() = %q, want %q — U+202E is valid Unicode and passes through", got, want)
 	}
 }
+
+func TestWhitespaceOnlyWhyContributesNothing(t *testing.T) {
+	cases := map[string]Because[testReason]{
+		"why is space and tab":      {What: Refusal{File: "", Line: 0, Subject: "", Why: " \t"}, Reason: testRefused, Cause: nil},
+		"why is newline":            {What: Refusal{File: "", Line: 0, Subject: "", Why: "\n"}, Reason: testRefused, Cause: nil},
+		"real why still renders":    {What: Refusal{File: "", Line: 0, Subject: "", Why: " \t" + Why(testFix) + " "}, Reason: testRefused, Cause: nil},
+		"why-less frame unaffected": {What: Refusal{File: testFile, Line: 0, Subject: "", Why: ""}, Reason: testRefused, Cause: nil},
+	}
+
+	wants := map[string]string{
+		"why is space and tab":      testRendered,
+		"why is newline":            testRendered,
+		"real why still renders":    testRendered + ". " + testFix,
+		"why-less frame unaffected": string(testFile) + ": " + testRendered,
+	}
+
+	for name, b := range cases {
+		t.Run(name, func(t *testing.T) {
+			got := b.Error()
+			if got != wants[name] {
+				t.Fatalf("Error() = %q, want %q", got, wants[name])
+			}
+		})
+	}
+}

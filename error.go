@@ -37,7 +37,7 @@ func (b Because[R]) Error() string {
 		}
 	}
 
-	return msg + b.What.sentenceTail(msg) + scrub(string(b.What.Why))
+	return msg + b.What.sentenceTail(msg) + scrub(strings.TrimSpace(string(b.What.Why)))
 }
 
 // scrub guarantees one slot's rendered text is well-formed UTF-8 with no raw
@@ -84,7 +84,7 @@ func (r Refusal) frame() string {
 // alone. The check decodes the last rune and honors ASCII and ideographic
 // terminals (。！？), so a multi-byte terminal still joins with a space.
 func (r Refusal) sentenceTail(msg string) string {
-	if r.Why == "" {
+	if strings.TrimSpace(string(r.Why)) == "" {
 		return ""
 	}
 
