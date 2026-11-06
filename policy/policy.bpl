@@ -96,3 +96,24 @@ rule no_clones {
     severity = error
     why      = "a clone is one decision written twice, and they drift the first time one of them changes"
 }
+
+# The commit-path gate ledger: every command a commit must survive to land.
+# These run in parallel after the engine's verify on the commit path.
+
+command test {
+    run   = "go test -count=1 ./..."
+    why   = "the suite is the behavioral contract; a commit that fails it is a defect shipped with evidence attached"
+    owner = "platform"
+}
+
+command lint {
+    run   = "golangci-lint run ./..."
+    why   = "the strictest-merged lint config is the static half of the contract; a commit that trips it is a defect the compiler cannot see"
+    owner = "platform"
+}
+
+command gofumpt {
+    run   = "golangci-lint fmt --diff"
+    why   = "gofumpt is the formatter and golangci-lint fmt --diff is the gate proven to bite on drift (the plain run does not report formatter drift); a commit must be gofumpt-clean"
+    owner = "platform"
+}
