@@ -42,10 +42,12 @@ func causeText(cause error) string {
 }
 
 // frame renders the file:line prefix, or "". The File is trimmed first: empty-after-trim means no frame — the uniform
-// skip-if-empty rule applies to File like every other slot. The file:line
-// pairing holds for At-constructed (and From-of-honest-Describe) values; a
-// directly constructed Refusal with a Line and no File drops the line
-// silently — that is the caller's contract breach, not the renderer's.
+// skip-if-empty rule applies to File like every other slot. For At-constructed
+// values, the file:line pairing is unambiguous: At refuses any File containing
+// a newline or ending in ":digits", so a log parser's ^(\S+):\d+: match locks
+// onto the true file. A directly constructed Refusal with a Line and no File
+// drops the line silently — that is the caller's contract breach, not the
+// renderer's.
 func (r Refusal) frame() string {
 	file := strings.TrimSpace(string(r.File))
 	if file == "" {
