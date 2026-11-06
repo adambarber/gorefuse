@@ -21,9 +21,9 @@ type Refusal struct {
 	Line    Line
 }
 
-// Because carries one refusal of reason type R; different R types cannot be
-// mixed — the type parameter is the compile-time wall. For string-kinded
-// reasons the zero value renders ""; embedded newlines pass through so the frame stays grep-able.
+// Because carries one refusal of reason type R; the type parameter is the
+// compile-time wall (zero value renders ""; see TestEmptyBecauseRendersEmpty).
+// A Cause that panics in Error is the caller's defect — no recovery.
 type Because[R any] struct {
 	Reason R
 	Cause  error
