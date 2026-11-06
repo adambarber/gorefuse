@@ -60,3 +60,35 @@ func TestEmbeddedNewlineStillPassesThroughScrubbed(t *testing.T) {
 		t.Fatalf("Error() = %q, want %q", got, want)
 	}
 }
+
+func TestESCEscapeNeutralized(t *testing.T) {
+	b := Because[testReason]{
+		What:   Refusal{File: "", Line: 0, Subject: "a\x1b[31mb", Why: ""},
+		Reason: "re\x1bfused",
+		Cause:  nil,
+	}
+
+	want := "re\uFFFDfused: a\uFFFD[31mb"
+
+	got := b.Error()
+	if got != want {
+		t.Fatalf("Error() = %q, want %q", got, want)
+	}
+
+	if strings.ContainsRune(got, '\x1b') {
+		t.Fatalf("Error() = %q still contains a raw ESC byte", got)
+	}
+}
+
+func TestBidiOverridePassesThrough(t *testing.T) {
+	b := Because[testReason]{
+		What:   Refusal{File: "", Line: 0, Subject: "", Why: ""},
+		Reason: testReason("dir\u202Ecru/"),
+		Cause:  nil,
+	}
+
+	want := "dir\u202Ecru/"
+	if got := b.Error(); got != want {
+		t.Fatalf("Error() = %q, want %q — U+202E is valid Unicode and passes through", got, want)
+	}
+}

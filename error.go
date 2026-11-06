@@ -15,7 +15,11 @@ import (
 // guaranteed well-formed UTF-8 with no raw carriage returns: invalid UTF-8
 // bytes become U+FFFD (strings.ToValidUTF8) so downstream UTF-8 log encoders
 // never break, and each \r becomes a space — a raw \r overwrites terminal
-// lines and has no meaning a refusal wants to preserve.
+// lines and has no meaning a refusal wants to preserve. Escape sequences are
+// neutralized at the byte level: the ESC byte (\x1b) becomes U+FFFD in every
+// slot, so a hostile slot cannot forge terminal output. Bidi overrides such as
+// U+202E pass through: they are valid Unicode and a grapheme-level display
+// concern, not something the library sanitizes.
 func (b Because[R]) Error() string {
 	var msg string
 
@@ -37,10 +41,12 @@ func (b Because[R]) Error() string {
 }
 
 // scrub guarantees one slot's rendered text is well-formed UTF-8 with no raw
-// carriage return: invalid UTF-8 becomes U+FFFD, each \r becomes a space.
-// Embedded newlines pass through untouched.
+// carriage return and no ESC byte: invalid UTF-8 and ESC become U+FFFD, each
+// \r becomes a space. Embedded newlines pass through untouched.
 func scrub(s string) string {
 	s = strings.ToValidUTF8(s, "\uFFFD")
+	s = strings.ReplaceAll(s, "\x1b", "\uFFFD")
+
 	return strings.ReplaceAll(s, "\r", " ")
 }
 
