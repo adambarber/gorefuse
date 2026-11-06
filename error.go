@@ -41,8 +41,7 @@ func causeText(cause error) string {
 	return cause.Error()
 }
 
-// frame renders the file:line prefix, or "".
-// The File is trimmed first: empty-after-trim means no frame — the uniform
+// frame renders the file:line prefix, or "". The File is trimmed first: empty-after-trim means no frame — the uniform
 // skip-if-empty rule applies to File like every other slot. The file:line
 // pairing holds for At-constructed (and From-of-honest-Describe) values; a
 // directly constructed Refusal with a Line and no File drops the line
