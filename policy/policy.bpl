@@ -13,8 +13,8 @@ ignore deps {
 }
 
 ignore errorInterface {
-    paths  = ["error.go", "because_test.go"]
-    reason = "the stdlib error and fmt.Stringer interfaces are declared with string results and a string parameter; the interface is the stdlib's spelling, so the named-kind rule cannot apply to the method set that satisfies it"
+    paths  = ["error.go", "because_test.go", "tail_test.go"]
+    reason = "the stdlib error and fmt.Stringer interfaces, and testing's t.Run table names and string wants, are declared with bare string positions; the interfaces and the test harness are the stdlib's spelling, so the named-kind rule cannot apply to the method set that satisfies them"
     owner  = "platform"
 }
 
