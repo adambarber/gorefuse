@@ -1,6 +1,10 @@
 package gorefuse
 
-import "testing"
+import (
+	"strconv"
+	"strings"
+	"testing"
+)
 
 type testDescriber struct {
 	what   Refusal
@@ -44,4 +48,24 @@ func TestFromWithoutDescription(t *testing.T) {
 	if got != want {
 		t.Fatalf("Error() = %q, want %q", got, want)
 	}
+}
+
+func TestAtRefusesWhitespaceFile(t *testing.T) {
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Fatal("At accepted a whitespace-only File; want a refusal")
+		}
+
+		msg, ok := r.(string)
+		if !ok {
+			t.Fatalf("panic is %T, want string", r)
+		}
+
+		if !strings.Contains(msg, strconv.Quote(" ")) {
+			t.Fatalf("panic %q does not echo the offending File value %q", msg, " ")
+		}
+	}()
+
+	At(" ", 3, testSubject, "")
 }

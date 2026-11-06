@@ -1,14 +1,18 @@
 package gorefuse
 
-import "strconv"
+import (
+	"strconv"
+	"strings"
+	"unicode"
+)
 
 // At builds a Refusal: the single construction path. Line 0 means the whole
-// file; a subject names the thing inside it; Why states the fix. A malformed
-// Line (no File, or negative) is refused with the offending values echoed.
+// file; a subject names the thing inside it; Why states the fix. A whitespace-
+// only File is malformed like a Line with no File.
 func At(f File, line Line, subject Subject, why Why) Refusal {
-	if f == "" && line != 0 {
+	if strings.TrimRightFunc(string(f), unicode.IsSpace) == "" && line != 0 {
 		panic("gorefuse: At refuses Line " + strconv.Itoa(int(line)) +
-			" without a File; file:line is one frame")
+			" without a File (" + strconv.Quote(string(f)) + "); file:line is one frame")
 	}
 
 	if line < 0 {

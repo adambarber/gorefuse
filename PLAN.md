@@ -18,3 +18,7 @@ and ideographic terminals (。！？). Compile-time domain wall tested two ways:
 `errors.As` never matches across reason domains, and a tag-gated assignment
 (`compilecheck_test.go`) is proven to fail the build by
 `TestCrossDomainAssignmentDoesNotCompile`.
+
+## Backlog (from the parity review, 2026-11-06)
+
+- **Structured/JSON rendering of refusals**: a Refusable must be serializable into a machine-readable format. The prose render stays the human path; serialization must not fork the render contract (stable order, whitespace rules), so the JSON form is derived from the same described parts, not re-rendered.
