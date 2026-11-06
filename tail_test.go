@@ -2,7 +2,7 @@ package gorefuse
 
 import "testing"
 
-// ideographic sentence terminals, spelled by rune so gosmopolitan stays quiet.
+// Han-script rune fires gosmopolitan; the others are rune-spelled for symmetry.
 const (
 	ideofullstop = '。'
 	ideoclash    = '直'

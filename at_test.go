@@ -40,7 +40,7 @@ func TestFromWithoutDescription(t *testing.T) {
 	b := From(testRefused, testDescriber{what: Refusal{File: "", Line: 0, Subject: "", Why: ""}, misses: true})
 	got := b.Error()
 
-	want := "refused"
+	want := testRendered
 	if got != want {
 		t.Fatalf("Error() = %q, want %q", got, want)
 	}

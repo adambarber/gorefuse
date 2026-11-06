@@ -3,13 +3,16 @@ package gorefuse
 import (
 	"fmt"
 	"strings"
+	"unicode"
 	"unicode/utf8"
 )
 
 // Error renders the refusal in a stable order: frame prefix, reason, subject,
-// cause tail, then the fix as a separate sentence.
+// cause tail, then the fix as a separate sentence. Trailing whitespace of any
+// kind is trimmed before the punctuation check; an embedded newline passes
+// through, so a multi-line reason keeps its shape under the grep-able frame.
 func (b Because[R]) Error() string {
-	msg := b.What.frame() + fmt.Sprint(b.Reason)
+	msg := strings.TrimRightFunc(b.What.frame()+fmt.Sprint(b.Reason), unicode.IsSpace)
 	if b.What.Subject != "" {
 		msg += ": " + string(b.What.Subject)
 	}
@@ -18,7 +21,7 @@ func (b Because[R]) Error() string {
 		msg += ": " + b.Cause.Error()
 	}
 
-	return strings.TrimRight(msg, " ") + b.What.sentenceTail(msg) + string(b.What.Why)
+	return msg + b.What.sentenceTail(msg) + string(b.What.Why)
 }
 
 // frame renders the file:line prefix, with the trailing separator, or "".
@@ -35,10 +38,9 @@ func (r Refusal) frame() string {
 }
 
 // sentenceTail returns the punctuation joining the fix to what precedes it.
-// An empty message gets no separator, and trailing whitespace is trimmed
-// before the punctuation check, so "refused " ends a sentence cleanly. The
-// check decodes the last rune and honors ASCII and ideographic terminals
-// (。！？), so a multi-byte terminal still joins with a space, not a dot.
+// An empty or whitespace-only message gets no separator — the fix stands
+// alone. The check decodes the last rune and honors ASCII and ideographic
+// terminals (。！？), so a multi-byte terminal still joins with a space.
 func (r Refusal) sentenceTail(msg string) string {
 	if r.Why == "" {
 		return ""
@@ -47,8 +49,6 @@ func (r Refusal) sentenceTail(msg string) string {
 	if msg == "" {
 		return ""
 	}
-
-	msg = strings.TrimRight(msg, " ")
 
 	term, _ := utf8.DecodeLastRuneInString(msg)
 	if strings.ContainsRune(".!?。！？", term) {
