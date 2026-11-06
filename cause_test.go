@@ -10,6 +10,7 @@ func TestCauseTailWhitespaceTrimmed(t *testing.T) {
 	}{
 		{"cause trailing space", trailingError("inner "), "refused: inner. " + testFix},
 		{"cause trailing tab", trailingError("inner\t"), "refused: inner. " + testFix},
+		{"all-whitespace cause drops out", trailingError("   "), "refused. " + testFix},
 	}
 
 	for _, tc := range cases {

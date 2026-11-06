@@ -8,25 +8,33 @@ import (
 )
 
 // Error renders the refusal in a stable order: frame prefix, reason, subject,
-// cause tail, then the fix as a separate sentence. All trailing whitespace of
-// the assembled message — frame, reason, subject, cause — is trimmed at one
-// point before the punctuation check; an embedded newline passes through, so
-// a multi-line reason keeps its shape under the grep-able frame. The trailing
-// trim is one trim over the assembled message, so the contract holds for
-// causes that end in whitespace too.
+// cause tail, then the fix as a separate sentence. Trailing whitespace is
+// trimmed from the assembled message before the punctuation check, and a
+// part whose trimmed contribution is empty (a whitespace-only cause, say)
+// is skipped entirely — no connector, no join. An embedded newline passes
+// through, so a multi-line reason keeps its shape under the grep-able frame.
 func (b Because[R]) Error() string {
 	msg := b.What.frame() + fmt.Sprint(b.Reason)
 	if b.What.Subject != "" {
 		msg += ": " + string(b.What.Subject)
 	}
 
-	if b.Cause != nil {
-		msg += ": " + b.Cause.Error()
+	if cause := strings.TrimRightFunc(causeText(b.Cause), unicode.IsSpace); cause != "" {
+		msg += ": " + cause
 	}
 
 	msg = strings.TrimRightFunc(msg, unicode.IsSpace)
 
 	return msg + b.What.sentenceTail(msg) + string(b.What.Why)
+}
+
+// causeText is the cause's message, or "" when there is no cause.
+func causeText(cause error) string {
+	if cause == nil {
+		return ""
+	}
+
+	return cause.Error()
 }
 
 // frame renders the file:line prefix, with the trailing separator, or "".

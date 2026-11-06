@@ -4,9 +4,9 @@ import (
 	"reflect"
 )
 
-// From builds a Because[R] from whatever the describable can say; it is the
-// hardened chokepoint — untyped nil, typed nil (pointer/map/slice/func/chan)
-// resolve to the reason standing alone; Describe must not panic.
+// From builds a Because[R] from whatever the describable can say. Top-level
+// nils (untyped, or typed nil of pointer/map/slice/func/chan kind) resolve to
+// the reason alone; a nil nested in a struct describer is Describe's contract.
 func From[R any](reason R, d Describable) Because[R] {
 	b := Because[R]{Reason: reason, Cause: nil, What: Refusal{File: "", Line: 0, Subject: "", Why: ""}}
 
@@ -21,9 +21,9 @@ func From[R any](reason R, d Describable) Because[R] {
 	return b
 }
 
-// isNilDescribable reports whether the describable holds nothing to call:
-// the interface itself nil, or a nil pointer/map/slice/func/chan inside it.
-// UnsafePointer is excluded: IsNil would panic on it.
+// isNilDescribable reports whether the describable holds nothing to call: the
+// interface itself nil, or a nil pointer/map/slice/func/chan inside it. The
+// exhaustive arm stays total for future reflect kinds, where UnsafePointer is unreachable and false.
 func isNilDescribable(d Describable) bool {
 	if d == nil {
 		return true
@@ -40,6 +40,6 @@ func isNilDescribable(d Describable) bool {
 		reflect.Interface, reflect.String, reflect.Struct, reflect.UnsafePointer:
 		return false
 	default:
-		return false
+		return false // defensive: future reflect kinds contribute nothing to call
 	}
 }

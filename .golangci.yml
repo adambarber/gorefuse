@@ -190,7 +190,6 @@ linters:
         - pattern: '^any$'
           analyze-types: true
           msg: "a bare `any` is an untyped value; name the domain kind"
-    gosec:
     gocognit:
       min-complexity: 10
     cyclop:
@@ -304,4 +303,4 @@ linters:
           clothe-returns: true
       goimports:
         local-prefixes:
-          - github.com/adambarber/goconf
+          - github.com/adambarber/gorefuse
