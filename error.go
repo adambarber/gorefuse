@@ -8,10 +8,14 @@ import (
 
 // Error renders the refusal in a stable order: frame prefix, reason, subject,
 // cause tail, then the fix as a separate sentence. Every contribution slot —
-// reason, subject, cause, and File — obeys one rule: the slot's trimmed text is
-// computed once, and empty-after-trim means the slot contributes nothing, no
-// connector. An embedded newline passes through, so a multi-line reason keeps
-// its shape under the grep-able frame.
+// reason, subject, cause, File, and Why — obeys one rule: the slot's trimmed
+// text is computed once, and empty-after-trim means the slot contributes
+// nothing, no connector. An embedded newline passes through, so a multi-line
+// reason keeps its shape under the grep-able frame. The rendered output is
+// guaranteed well-formed UTF-8 with no raw carriage returns: invalid UTF-8
+// bytes become U+FFFD (strings.ToValidUTF8) so downstream UTF-8 log encoders
+// never break, and each \r becomes a space — a raw \r overwrites terminal
+// lines and has no meaning a refusal wants to preserve.
 func (b Because[R]) Error() string {
 	var msg string
 
@@ -20,7 +24,7 @@ func (b Because[R]) Error() string {
 	}
 
 	for _, part := range []string{fmt.Sprint(b.Reason), string(b.What.Subject), causeText(b.Cause)} {
-		if part = strings.TrimSpace(part); part != "" {
+		if part = scrub(strings.TrimSpace(part)); part != "" {
 			if msg != "" {
 				msg += ": "
 			}
@@ -29,7 +33,15 @@ func (b Because[R]) Error() string {
 		}
 	}
 
-	return msg + b.What.sentenceTail(msg) + string(b.What.Why)
+	return msg + b.What.sentenceTail(msg) + scrub(string(b.What.Why))
+}
+
+// scrub guarantees one slot's rendered text is well-formed UTF-8 with no raw
+// carriage return: invalid UTF-8 becomes U+FFFD, each \r becomes a space.
+// Embedded newlines pass through untouched.
+func scrub(s string) string {
+	s = strings.ToValidUTF8(s, "\uFFFD")
+	return strings.ReplaceAll(s, "\r", " ")
 }
 
 // causeText is the cause's message, or "" when there is no cause.
@@ -49,7 +61,7 @@ func causeText(cause error) string {
 // drops the line silently — that is the caller's contract breach, not the
 // renderer's.
 func (r Refusal) frame() string {
-	file := strings.TrimSpace(string(r.File))
+	file := scrub(strings.TrimSpace(string(r.File)))
 	if file == "" {
 		return ""
 	}
