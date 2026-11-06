@@ -238,6 +238,12 @@ linters:
     # PLAN.md and the mandate); renaming to BecauseError would break the design.
     # This exclusion covers only the file that declares it.
     rules:
+      # From's type parameter R must accept any reason kind a domain
+      # declares; a constraint cannot name a domain kind, so `any` is the
+      # only permissive spelling. The exclusion covers only that constraint.
+      - path: from\.go
+        linters:
+          - forbidigo
       # Because's type parameter R must accept any reason kind a domain
       # declares; a constraint cannot name a domain kind, so `any` is the
       # only permissive spelling. The exclusion covers only that constraint.
