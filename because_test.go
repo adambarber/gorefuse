@@ -22,6 +22,8 @@ const testFile = File("f.toml")
 
 const testSubject = Subject("server.tls")
 
+const wantFrameSubject = "f.toml: refused: server.tls"
+
 func TestReasonAlone(t *testing.T) {
 	b := Because[testReason]{What: Refusal{File: "", Line: 0, Subject: "", Why: ""}, Reason: testMissing, Cause: nil}
 	got := b.Error()
@@ -60,7 +62,7 @@ func TestSubjectAppends(t *testing.T) {
 	}
 	got := b.Error()
 
-	want := "f.toml: refused: server.tls"
+	want := wantFrameSubject
 	if got != want {
 		t.Fatalf("Error() = %q, want %q", got, want)
 	}

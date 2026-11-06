@@ -30,7 +30,7 @@ func TestBecauseFromDescribable(t *testing.T) {
 	b := From(testRefused, testDescriber{what: Refusal{File: testFile, Line: 0, Subject: testSubject, Why: ""}, misses: false})
 	got := b.Error()
 
-	want := "f.toml: refused: server.tls"
+	want := wantFrameSubject
 	if got != want {
 		t.Fatalf("Error() = %q, want %q", got, want)
 	}
