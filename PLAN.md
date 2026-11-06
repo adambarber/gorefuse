@@ -6,6 +6,7 @@ conventions: birdcage policy gate, strictest merged lint config, TDD.
 
 ## Status
 
-Scaffolded. The refusal vocabulary (`Because[R]`, `Refusal`,
-`Describable`, the single `At()` constructor) is planned, not yet
-implemented.
+Batch 1 landed: `Because[R]` with rendering (frame prefix, reason, subject,
+cause tail, fix sentence), `Refusal` and the named kinds (`File`, `Line`,
+`Subject`, `Why`), `Unwrap` to `Cause`. Remaining: `Describable` + `At()`
+constructor (Batch 2), compile-time guarantees polish (Batch 3).

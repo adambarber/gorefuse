@@ -12,6 +12,12 @@ ignore deps {
     owner  = "platform"
 }
 
+ignore errorInterface {
+    paths  = ["error.go", "because_test.go"]
+    reason = "the stdlib error and fmt.Stringer interfaces are declared with string results and a string parameter; the interface is the stdlib's spelling, so the named-kind rule cannot apply to the method set that satisfies it"
+    owner  = "platform"
+}
+
 rule branching_budget {
     lang    = go
     type    = budget
