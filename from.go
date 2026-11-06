@@ -4,9 +4,9 @@ import (
 	"reflect"
 )
 
-// From builds a Because[R] from whatever the describable can say. From is the
-// hardened chokepoint: untyped nil, typed nil (pointer/map/slice/func), or a
-// Describe reporting no description all resolve to no description available.
+// From builds a Because[R] from whatever the describable can say; it is the
+// hardened chokepoint — untyped nil, typed nil (pointer/map/slice/func/chan)
+// resolve to the reason standing alone; Describe must not panic.
 func From[R any](reason R, d Describable) Because[R] {
 	b := Because[R]{Reason: reason, Cause: nil, What: Refusal{File: "", Line: 0, Subject: "", Why: ""}}
 
@@ -22,7 +22,8 @@ func From[R any](reason R, d Describable) Because[R] {
 }
 
 // isNilDescribable reports whether the describable holds nothing to call:
-// the interface itself nil, or a nil pointer/map/slice/func inside it.
+// the interface itself nil, or a nil pointer/map/slice/func/chan inside it.
+// UnsafePointer is excluded: IsNil would panic on it.
 func isNilDescribable(d Describable) bool {
 	if d == nil {
 		return true
@@ -30,12 +31,12 @@ func isNilDescribable(d Describable) bool {
 
 	v := reflect.ValueOf(d)
 	switch v.Kind() {
-	case reflect.Pointer, reflect.Map, reflect.Slice, reflect.Func:
+	case reflect.Pointer, reflect.Map, reflect.Slice, reflect.Func, reflect.Chan:
 		return v.IsNil()
 	case reflect.Invalid, reflect.Bool, reflect.Int, reflect.Int8, reflect.Int16,
 		reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16,
 		reflect.Uint32, reflect.Uint64, reflect.Uintptr, reflect.Float32, reflect.Float64,
-		reflect.Complex64, reflect.Complex128, reflect.Array, reflect.Chan,
+		reflect.Complex64, reflect.Complex128, reflect.Array,
 		reflect.Interface, reflect.String, reflect.Struct, reflect.UnsafePointer:
 		return false
 	default:

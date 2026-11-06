@@ -22,8 +22,8 @@ type Refusal struct {
 }
 
 // Because carries one refusal of reason type R; different R types cannot be
-// mixed — the type parameter is the compile-time wall. The zero value renders
-// "" by contract; Error keeps an embedded newline, so the frame stays grep-able.
+// mixed — the type parameter is the compile-time wall. For string-kinded
+// reasons the zero value renders ""; embedded newlines pass through so the frame stays grep-able.
 type Because[R any] struct {
 	Reason R
 	Cause  error

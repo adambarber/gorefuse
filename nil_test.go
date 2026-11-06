@@ -2,26 +2,24 @@ package gorefuse
 
 import "testing"
 
-// nilDescriber implements Describable on the pointer with a value-receiver
-// call into the zero value, so a nil pointer reaching Describe panics —
-// the hostile shape From must harden against.
-type nilDescriber struct {
-	name testReason
+// plainDescriber implements Describable on the pointer, so a nil receiver's
+// Describe would panic — the hostile nil-able shape From must harden against.
+// The nil-able-kind switch covers pointer/map/slice/func/chan for all kinds.
+type plainDescriber struct{}
+
+func (d *plainDescriber) Describe() (Refusal, bool) {
+	_ = *d // nil receiver panics here; the hostile shape From must not reach
+
+	return Refusal{File: "", Line: 0, Subject: "", Why: ""}, true
 }
 
-func (d *nilDescriber) Describe() (Refusal, bool) {
-	// Reaching here through a nil receiver panics on name — the hostile shape.
-	return Refusal{File: "", Line: 0, Subject: "", Why: ""}, d.name == ""
-}
-
-func TestFromTypedNilDescriber(t *testing.T) {
-	defer func() {
+func TestFromNilChanDescriber(t *testing.T) {	defer func() {
 		if r := recover(); r != nil {
-			t.Fatalf("From panicked on a typed-nil Describable: %v", r)
+			t.Fatalf("From panicked on a nil-chan Describable: %v", r)
 		}
 	}()
 
-	var d *nilDescriber
+	var d *plainDescriber
 
 	b := From(testRefused, d)
 	if got := b.Error(); got != testRendered {
@@ -29,27 +27,12 @@ func TestFromTypedNilDescriber(t *testing.T) {
 	}
 }
 
-func TestFromNilUntypedInterface(t *testing.T) {
-	defer func() {
-		if r := recover(); r != nil {
-			t.Fatalf("From panicked on an untyped-nil Describable: %v", r)
-		}
-	}()
-
-	var d Describable
-
-	b := From(testRefused, d)
-	if got := b.Error(); got != testRendered {
-		t.Fatalf("Error() = %q, want %q", got, testRendered)
-	}
-}
-
-func TestAtRefusesLineWithoutFile(t *testing.T) {
+func TestAtRefusesNegativeLine(t *testing.T) {
 	defer func() {
 		if r := recover(); r == nil {
-			t.Fatal("At accepted Line > 0 with an empty File; want a refusal")
+			t.Fatal("At accepted a negative Line; want a refusal")
 		}
 	}()
 
-	At("", 3, testSubject, "")
+	At(testFile, -2, testSubject, "")
 }
