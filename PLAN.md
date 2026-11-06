@@ -19,6 +19,18 @@ and ideographic terminals (。！？). Compile-time domain wall tested two ways:
 (`compilecheck_test.go`) is proven to fail the build by
 `TestCrossDomainAssignmentDoesNotCompile`.
 
+Security hardening landed (2026-11-06, five clusters): the rendered `Error()`
+output is guaranteed well-formed UTF-8 with no raw carriage return and no ESC
+byte — invalid UTF-8 and \x1b become U+FFFD, each \r becomes a space, while
+embedded \n still passes through (grep-ability contract) and bidi overrides
+such as U+202E deliberately pass through (documented, probed: visual reversal
+only). `At()` refuses a File containing a newline or a trailing `:digits`
+pattern, so the file:line pairing is unambiguous for At-constructed values —
+a log parser's `^(\S+):\d+:` match locks onto the true file; interior colons
+are accepted and documented. A whitespace-only Why joins the skip-if-empty
+discipline and renders trimmed. A Cause that panics in Error is the caller's
+defect — documented, not armored.
+
 ## Backlog (from the parity review, 2026-11-06)
 
 - **Structured/JSON rendering of refusals**: a Refusable must be serializable into a machine-readable format. The prose render stays the human path; serialization must not fork the render contract (stable order, whitespace rules), so the JSON form is derived from the same described parts, not re-rendered.
