@@ -250,6 +250,13 @@ linters:
         linters:
           - errname
           - forbidigo
+      # render_test.go's test helpers are generic over the reason kind the
+      # same way Because is; a constraint cannot name a domain kind, so `any`
+      # is the only permissive spelling. The exclusion covers only that file.
+      - path: render_test\.go
+        linters:
+          - forbidigo
+          - modernize
       # policy/fixtures/* are intentionally rule-violating examples: the BPL
       # budget rules are supposed to fire on them. Excluding them from lint
       # keeps the gate clean without weakening it — a fixture that passes lint

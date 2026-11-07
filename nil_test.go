@@ -1,30 +1,11 @@
 package gorefuse
 
-import (
-	"strings"
-	"testing"
-)
+import "testing"
 
 func TestAtRefusesNegativeLine(t *testing.T) {
-	defer func() {
-		r := recover()
-		if r == nil {
-			t.Fatal("At accepted a negative Line; want a refusal")
-		}
-
-		msg, ok := r.(string)
-		if !ok {
-			t.Fatalf("panic is %T, want string", r)
-		}
-
-		for _, want := range []string{"-2", string(testFile)} {
-			if !strings.Contains(msg, want) {
-				t.Fatalf("panic %q does not echo %q", msg, want)
-			}
-		}
-	}()
-
-	At(testFile, -2, testSubject, "")
+	assertRefusalPanics(t, "At accepted a negative Line", func() {
+		At(testFile, -2, testSubject, "")
+	}, "-2", string(testFile))
 }
 
 // plainDescriber implements Describable on the pointer, so a nil receiver's
@@ -77,16 +58,9 @@ func TestFromNilDescribableKinds(t *testing.T) {
 
 	for name, d := range kinds {
 		t.Run(name, func(t *testing.T) {
-			defer func() {
-				if r := recover(); r != nil {
-					t.Fatalf("From panicked on a nil-%s Describable: %v", name, r)
-				}
-			}()
-
-			b := From(testRefused, d)
-			if got := b.Error(); got != testRendered {
-				t.Fatalf("Error() = %q, want %q", got, testRendered)
-			}
+			assertNoPanic(t, testContext("From panicked on a nil-"+name+" Describable"), func() {
+				assertRender(t, From(testRefused, d), testRendered)
+			})
 		})
 	}
 }

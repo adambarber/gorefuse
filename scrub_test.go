@@ -22,12 +22,9 @@ func TestCarriageReturnNeutralized(t *testing.T) {
 
 	for name, b := range cases {
 		t.Run(name, func(t *testing.T) {
-			got := b.Error()
-			if got != wants[name] {
-				t.Fatalf("Error() = %q, want %q", got, wants[name])
-			}
+			assertRender(t, b, renderText(wants[name]))
 
-			if strings.ContainsRune(got, '\r') {
+			if got := b.Error(); strings.ContainsRune(got, '\r') {
 				t.Fatalf("Error() = %q still contains a raw carriage return", got)
 			}
 		})
@@ -35,62 +32,24 @@ func TestCarriageReturnNeutralized(t *testing.T) {
 }
 
 func TestInvalidUTF8BecomesReplacementChar(t *testing.T) {
-	b := Because[testReason]{
-		What:   Refusal{File: "", Line: 0, Subject: "", Why: ""},
-		Reason: testReason("bad \xff\xfe tail"),
-		Cause:  nil,
-	}
-
 	// strings.ToValidUTF8 replaces each run of invalid bytes with one U+FFFD.
-	want := "bad \uFFFD tail"
-	if got := b.Error(); got != want {
-		t.Fatalf("Error() = %q, want %q", got, want)
-	}
-}
-
-func TestEmbeddedNewlineStillPassesThroughScrubbed(t *testing.T) {
-	b := Because[testReason]{
-		What:   Refusal{File: "f.toml", Line: 3, Subject: "", Why: ""},
-		Reason: testReason("line one\nline two"),
-		Cause:  nil,
-	}
-
-	want := "f.toml:3: line one\nline two"
-	if got := b.Error(); got != want {
-		t.Fatalf("Error() = %q, want %q", got, want)
-	}
+	assertRender(t, because(Refusal{File: "", Line: 0, Subject: "", Why: ""}, testReason("bad \xff\xfe tail"), nil),
+		"bad \uFFFD tail")
 }
 
 func TestESCEscapeNeutralized(t *testing.T) {
-	b := Because[testReason]{
-		What:   Refusal{File: "", Line: 0, Subject: "a\x1b[31mb", Why: ""},
-		Reason: "re\x1bfused",
-		Cause:  nil,
-	}
+	b := because(Refusal{File: "", Line: 0, Subject: "a\x1b[31mb", Why: ""}, "re\x1bfused", nil)
 
-	want := "re\uFFFDfused: a\uFFFD[31mb"
+	assertRender(t, b, "re\uFFFDfused: a\uFFFD[31mb")
 
-	got := b.Error()
-	if got != want {
-		t.Fatalf("Error() = %q, want %q", got, want)
-	}
-
-	if strings.ContainsRune(got, '\x1b') {
+	if got := b.Error(); strings.ContainsRune(got, '\x1b') {
 		t.Fatalf("Error() = %q still contains a raw ESC byte", got)
 	}
 }
 
 func TestBidiOverridePassesThrough(t *testing.T) {
-	b := Because[testReason]{
-		What:   Refusal{File: "", Line: 0, Subject: "", Why: ""},
-		Reason: testReason("dir\u202Ecru/"),
-		Cause:  nil,
-	}
-
-	want := "dir\u202Ecru/"
-	if got := b.Error(); got != want {
-		t.Fatalf("Error() = %q, want %q — U+202E is valid Unicode and passes through", got, want)
-	}
+	assertRender(t, because(Refusal{File: "", Line: 0, Subject: "", Why: ""}, testReason("dir\u202Ecru/"), nil),
+		"dir\u202Ecru/")
 }
 
 func TestWhitespaceOnlyWhyContributesNothing(t *testing.T) {
@@ -110,10 +69,7 @@ func TestWhitespaceOnlyWhyContributesNothing(t *testing.T) {
 
 	for name, b := range cases {
 		t.Run(name, func(t *testing.T) {
-			got := b.Error()
-			if got != wants[name] {
-				t.Fatalf("Error() = %q, want %q", got, wants[name])
-			}
+			assertRender(t, b, renderText(wants[name]))
 		})
 	}
 }

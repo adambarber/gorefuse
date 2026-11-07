@@ -30,14 +30,7 @@ func TestWhitespaceContract(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			b := Because[testReason]{
-				What:   Refusal{File: tc.file, Line: 0, Subject: "", Why: tc.why},
-				Reason: tc.reason,
-				Cause:  nil,
-			}
-			if got := b.Error(); got != tc.want {
-				t.Fatalf("Error() = %q, want %q", got, tc.want)
-			}
+			assertRender(t, because(Refusal{File: tc.file, Line: 0, Subject: "", Why: tc.why}, tc.reason, nil), renderText(tc.want))
 		})
 	}
 }
@@ -61,27 +54,12 @@ func TestSkipIfEmptyUniform(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			b := Because[testReason]{
-				What:   Refusal{File: tc.file, Line: tc.line, Subject: tc.subject, Why: tc.why},
-				Reason: tc.reason,
-				Cause:  nil,
-			}
-			if got := b.Error(); got != tc.want {
-				t.Fatalf("Error() = %q, want %q", got, tc.want)
-			}
+			assertRender(t, because(Refusal{File: tc.file, Line: tc.line, Subject: tc.subject, Why: tc.why}, tc.reason, nil), renderText(tc.want))
 		})
 	}
 }
 
 func TestFrameWhitespaceFileSuppressed(t *testing.T) {
-	b := Because[testReason]{
-		What:   Refusal{File: " ", Line: 3, Subject: testSubject, Why: ""},
-		Reason: testRefused,
-		Cause:  nil,
-	}
-
-	want := string(testRefused) + ": " + string(testSubject)
-	if got := b.Error(); got != want {
-		t.Fatalf("Error() = %q, want %q", got, want)
-	}
+	assertRender(t, because(Refusal{File: " ", Line: 3, Subject: testSubject, Why: ""}, testRefused, nil),
+		renderText(string(testRefused)+": "+string(testSubject)))
 }

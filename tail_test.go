@@ -33,14 +33,7 @@ func TestTailRendering(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			b := Because[testReason]{
-				What:   Refusal{File: "", Line: 0, Subject: tc.subject, Why: tc.why},
-				Reason: tc.reason,
-				Cause:  nil,
-			}
-			if got := b.Error(); got != tc.want {
-				t.Fatalf("Error() = %q, want %q", got, tc.want)
-			}
+			assertRender(t, because(Refusal{File: "", Line: 0, Subject: tc.subject, Why: tc.why}, tc.reason, nil), renderText(tc.want))
 		})
 	}
 }

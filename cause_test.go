@@ -15,14 +15,7 @@ func TestCauseTailWhitespaceTrimmed(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			b := Because[testReason]{
-				What:   Refusal{File: "", Line: 0, Subject: "", Why: Why(testFix)},
-				Reason: testRefused,
-				Cause:  tc.cause,
-			}
-			if got := b.Error(); got != tc.want {
-				t.Fatalf("Error() = %q, want %q", got, tc.want)
-			}
+			assertRender(t, because(Refusal{File: "", Line: 0, Subject: "", Why: Why(testFix)}, testRefused, tc.cause), renderText(tc.want))
 		})
 	}
 }
