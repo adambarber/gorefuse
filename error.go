@@ -31,7 +31,8 @@ func (b Because[R]) Error() string {
 	}
 
 	for _, part := range []string{fmt.Sprint(b.Reason),
-		string(markedSensitive(b.What.Subject, SubjectSensitive, b.What.Sensitive)), causeText(b.Cause)} {
+		string(markedSensitive(b.What.Subject, SubjectSensitive, b.What.Sensitive)),
+		causeTail(b)} {
 		if part = scrub(strings.TrimSpace(part)); part != "" {
 			if msg != "" {
 				msg += ": "
@@ -55,29 +56,33 @@ func scrub(s string) string {
 	return strings.ReplaceAll(s, "\r", " ")
 }
 
-// causeText is the cause's message, or "" when there is no cause.
-func causeText(cause error) string {
-	if cause == nil {
+// causeTail renders the cause's message, or "" when there is no cause or the
+// cause is marked sensitive: a marked cause contributes nothing, as if absent.
+// The cause is a tail, not a slot, so it has no single-token redacted form.
+func causeTail[R any](b Because[R]) string { //nolint:forbidigo // R must accept any reason kind, as in from.go
+	if b.Cause == nil || b.What.Sensitive&CauseSensitive != 0 {
 		return ""
 	}
 
-	return cause.Error()
+	return b.Cause.Error()
 }
 
 // frame renders the file:line prefix, or "". The File is trimmed first: empty-after-trim means no frame — the uniform
-// skip-if-empty rule applies to File like every other slot. For At-constructed
-// values, the file:line pairing is unambiguous: At refuses any File containing
-// a newline or ending in ":digits", so a log parser's ^(\S+):\d+: match locks
-// onto the true file. A directly constructed Refusal with a Line and no File
-// drops the line silently — that is the caller's contract breach, not the
-// renderer's.
+// skip-if-empty rule applies to File like every other slot. The guard is total: on EVERY construction path, a File that
+// could forge the file:line pairing — newline-bearing or trailing ":digits" — renders the fixed placeholder invalidFrame
+// with no Line, so no path can emit a false file:line pairing. At refuses such input up front; this render-time backstop
+// covers hand-built Refusal structs (e.g. through From/Describe). A non-positive Line never pairs: it is skipped.
 func (r Refusal) frame() string {
 	file := scrub(strings.TrimSpace(string(r.File)))
 	if file == "" {
 		return ""
 	}
 
-	if r.Line == 0 {
+	if strings.ContainsAny(file, "\n") || trailingDigits.MatchString(file) {
+		return invalidFrame
+	}
+
+	if r.Line <= 0 {
 		return file
 	}
 

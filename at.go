@@ -11,9 +11,13 @@ import (
 // forging the file:line pairing that log parsers lock onto.
 var trailingDigits = regexp.MustCompile(`:[0-9]+$`)
 
-// At builds a Refusal: the single construction path. Line 0 means the whole
-// file; a subject names the thing inside it; Why states the fix. At refuses
-// File with a newline or trailing ":digits"; marked slots render Redacted.
+// invalidFrame is the placeholder the render path substitutes for a File that
+// would forge a file:line pairing (newline-bearing or trailing ":digits").
+const invalidFrame = "<invalid-frame>"
+
+// At builds a Refusal: the single construction path; Line 0 means the whole
+// file. At panics on a forged frame or unknown Sensitive bits (see the render
+// contract in error.go for the full panic list); File is stored trimmed.
 func At(f File, line Line, subject Subject, why Why, marks ...Sensitive) Refusal {
 	if strings.TrimRightFunc(string(f), unicode.IsSpace) == "" && line != 0 {
 		panic("gorefuse: At refuses Line " + strconv.Itoa(int(line)) +
@@ -37,11 +41,17 @@ func At(f File, line Line, subject Subject, why Why, marks ...Sensitive) Refusal
 	}
 
 	sensitive := Sensitive(0)
+
 	for _, m := range marks {
+		if m&^sensitiveMask != 0 {
+			panic("gorefuse: At refuses Sensitive marks " + strconv.Itoa(int(m)) +
+				"; unknown bits outside SubjectSensitive|WhySensitive|CauseSensitive")
+		}
+
 		sensitive |= m
 	}
 
-	return Refusal{File: f, Subject: subject, Why: why, Line: line, Sensitive: sensitive}
+	return Refusal{File: File(file), Subject: subject, Why: why, Line: line, Sensitive: sensitive}
 }
 
 // Describable is anything that can say what was refused and where; the bool
