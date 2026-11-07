@@ -13,8 +13,8 @@ type Subject string
 type Why string
 
 // Refusal describes what was refused: where it sits, what it is, and the fix.
-// Build one only through At. A slot marked in Sensitive renders as
-// Redacted — see Sensitive.
+// Build one only through At; the render path guards the frame even for
+// hand-built structs. A slot marked in Sensitive renders as Redacted.
 type Refusal struct {
 	File      File
 	Subject   Subject

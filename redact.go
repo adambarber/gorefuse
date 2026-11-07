@@ -2,9 +2,9 @@ package gorefuse
 
 import "strings"
 
-// Redacted is the fixed token a marked-sensitive slot renders as. It is
-// grep-stable, resembles no real content, and is itself scrub-clean, so the
-// other scrub stages transform it to itself.
+// Redacted is the fixed token a marked-sensitive slot renders as — grep-
+// stable, resembling no real content, and scrub-clean. Not authenticated:
+// unmarked content containing the literal [redacted] renders identically.
 const Redacted = "[redacted]"
 
 // Sensitive marks which slots of a Refusal carry secret-classified content: a

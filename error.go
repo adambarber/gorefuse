@@ -20,9 +20,9 @@ import (
 // slot, so a hostile slot cannot forge terminal output. A slot marked
 // sensitive renders as the fixed token Redacted, never its content — the
 // caller classifies what is sensitive; the renderer guarantees only the
-// marked case (see Sensitive). Bidi overrides such as
-// U+202E pass through: they are valid Unicode and a grapheme-level display
-// concern, not something the library sanitizes.
+// marked case (see Sensitive). A cause marked CauseSensitive renders nothing.
+// Bidi overrides such as U+202E pass through: they are valid Unicode and a
+// grapheme-level display concern, not something the library sanitizes.
 func (b Because[R]) Error() string {
 	var msg string
 
