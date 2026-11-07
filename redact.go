@@ -7,9 +7,9 @@ import "strings"
 // other scrub stages transform it to itself.
 const Redacted = "[redacted]"
 
-// Sensitive marks which slots of a Refusal carry content the caller has
-// classified as sensitive: a marked slot renders as Redacted, never its
-// content. The caller classifies; this guarantees only the marked case.
+// Sensitive marks which slots of a Refusal carry secret-classified content: a
+// marked Subject or Why renders as Redacted; a marked Cause renders nothing.
+// Marks never cover Reason (arbitrary caller type R) — keep secrets out of it.
 type Sensitive uint8
 
 const (
@@ -18,7 +18,14 @@ const (
 
 	// WhySensitive marks the Why slot as sensitive.
 	WhySensitive
+
+	// CauseSensitive marks the Cause slot: when marked, the entire cause tail
+	// renders nothing, as if there were no cause — a tail has no token form.
+	CauseSensitive
 )
+
+// sensitiveMask is the set of valid Sensitive bits; At refuses anything else.
+const sensitiveMask = SubjectSensitive | WhySensitive | CauseSensitive
 
 // markedSensitive renders a slot the redaction stage produces: the token
 // when marked, the text otherwise. An empty slot stays empty — redaction

@@ -68,8 +68,19 @@ func TestUnmarkedAtUnchanged(t *testing.T) {
 	}
 }
 
-func TestRedactedTokenIsClean(t *testing.T) {
-	if strings.TrimSpace(Redacted) == "" {
-		t.Fatal("token is whitespace")
+// TestRedactedTokenIsByteExact pins the token by bytes: the token is part of
+// the render contract, and its literal value is also what unmarked content can
+// forge (see the README token-forgery note) — so the equality must be exact.
+func TestRedactedTokenIsByteExact(t *testing.T) {
+	if Redacted != "[redacted]" {
+		t.Fatalf("Redacted = %q, want %q", Redacted, "[redacted]")
+	}
+}
+
+// TestRedactedTokenIsScrubIdempotent runs the token through the same scrub
+// stages Error() applies to slots and pins that it survives unchanged.
+func TestRedactedTokenIsScrubIdempotent(t *testing.T) {
+	if got := scrub(strings.TrimSpace(Redacted)); got != Redacted {
+		t.Fatalf("scrub(Redacted) = %q, want %q", got, Redacted)
 	}
 }
