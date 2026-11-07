@@ -11,6 +11,10 @@ import (
 // forging the file:line pairing that log parsers lock onto.
 var trailingDigits = regexp.MustCompile(`:[0-9]+$`)
 
+// trailingColon matches a File ending in a bare colon: its frame carries a
+// dangling separator ("a.go::7") no documented frame shape blesses.
+var trailingColon = regexp.MustCompile(`:$`)
+
 // invalidFrame is the placeholder the render path substitutes for a File that
 // would forge a file:line pairing (newline-bearing or trailing ":digits").
 const invalidFrame = "<invalid-frame>"
@@ -33,6 +37,11 @@ func At(f File, line Line, subject Subject, why Why, marks ...Sensitive) Refusal
 	if trailingDigits.MatchString(file) {
 		panic("gorefuse: At refuses File " + strconv.Quote(file) +
 			"; trailing :digits would forge its file:line frame")
+	}
+
+	if trailingColon.MatchString(file) {
+		panic("gorefuse: At refuses File " + strconv.Quote(file) +
+			"; a colon-terminated File would render a dangling \":\" in its frame")
 	}
 
 	if line < 0 {

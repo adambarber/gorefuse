@@ -71,14 +71,17 @@ func causeTail[R any](b Because[R]) string { //nolint:forbidigo // R must accept
 // skip-if-empty rule applies to File like every other slot. The guard is total: on EVERY construction path, a File that
 // could forge the file:line pairing — newline-bearing or trailing ":digits" — renders the fixed placeholder invalidFrame
 // with no Line, so no path can emit a false file:line pairing. At refuses such input up front; this render-time backstop
-// covers hand-built Refusal structs (e.g. through From/Describe). A non-positive Line never pairs: it is skipped.
+// covers hand-built Refusal structs (e.g. through From/Describe). The same placeholder covers a colon-terminated File
+// (a dangling ":" in the frame) and unknown Sensitive bits: the render path refuses what At refuses. A non-positive
+// Line never pairs: it is skipped.
 func (r Refusal) frame() string {
 	file := scrub(strings.TrimSpace(string(r.File)))
 	if file == "" {
 		return ""
 	}
 
-	if strings.ContainsAny(file, "\n") || trailingDigits.MatchString(file) {
+	if strings.ContainsAny(file, "\n") || trailingDigits.MatchString(file) || trailingColon.MatchString(file) ||
+		r.Sensitive&^sensitiveMask != 0 {
 		return invalidFrame
 	}
 
