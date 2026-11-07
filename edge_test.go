@@ -16,6 +16,6 @@ func TestFromNilDescribable(t *testing.T) {
 // scrubbed rendering take the same code path, so one assertion covers both
 // sides of the scrub boundary.
 func TestEmbeddedNewlinePassesThrough(t *testing.T) {
-	assertRender(t, because(Refusal{File: "f.toml", Line: 3, Subject: "", Why: ""}, testReason("line one\nline two"), nil),
+	assertRender(t, because(Refusal{File: "f.toml", Line: 3, Subject: "", Why: "", Sensitive: 0}, testReason("line one\nline two"), nil),
 		wantMultilineFrame)
 }

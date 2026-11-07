@@ -17,7 +17,10 @@ import (
 // never break, and each \r becomes a space — a raw \r overwrites terminal
 // lines and has no meaning a refusal wants to preserve. Escape sequences are
 // neutralized at the byte level: the ESC byte (\x1b) becomes U+FFFD in every
-// slot, so a hostile slot cannot forge terminal output. Bidi overrides such as
+// slot, so a hostile slot cannot forge terminal output. A slot marked
+// sensitive renders as the fixed token Redacted, never its content — the
+// caller classifies what is sensitive; the renderer guarantees only the
+// marked case (see Sensitive). Bidi overrides such as
 // U+202E pass through: they are valid Unicode and a grapheme-level display
 // concern, not something the library sanitizes.
 func (b Because[R]) Error() string {
@@ -27,7 +30,8 @@ func (b Because[R]) Error() string {
 		msg = frame
 	}
 
-	for _, part := range []string{fmt.Sprint(b.Reason), string(b.What.Subject), causeText(b.Cause)} {
+	for _, part := range []string{fmt.Sprint(b.Reason),
+		string(markedSensitive(b.What.Subject, SubjectSensitive, b.What.Sensitive)), causeText(b.Cause)} {
 		if part = scrub(strings.TrimSpace(part)); part != "" {
 			if msg != "" {
 				msg += ": "
@@ -37,7 +41,8 @@ func (b Because[R]) Error() string {
 		}
 	}
 
-	return msg + b.What.sentenceTail(msg) + scrub(strings.TrimSpace(string(b.What.Why)))
+	return msg + b.What.sentenceTail(msg) +
+		scrub(strings.TrimSpace(string(markedSensitiveWhy(b.What.Why, WhySensitive, b.What.Sensitive))))
 }
 
 // scrub guarantees one slot's rendered text is well-formed UTF-8 with no raw

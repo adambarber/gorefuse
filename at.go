@@ -13,8 +13,8 @@ var trailingDigits = regexp.MustCompile(`:[0-9]+$`)
 
 // At builds a Refusal: the single construction path. Line 0 means the whole
 // file; a subject names the thing inside it; Why states the fix. At refuses
-// File with a newline or trailing ":digits" (see frame).
-func At(f File, line Line, subject Subject, why Why) Refusal {
+// File with a newline or trailing ":digits"; marked slots render Redacted.
+func At(f File, line Line, subject Subject, why Why, marks ...Sensitive) Refusal {
 	if strings.TrimRightFunc(string(f), unicode.IsSpace) == "" && line != 0 {
 		panic("gorefuse: At refuses Line " + strconv.Itoa(int(line)) +
 			" without a File (" + strconv.Quote(string(f)) + "); file:line is one frame")
@@ -36,7 +36,12 @@ func At(f File, line Line, subject Subject, why Why) Refusal {
 			" for File " + strconv.Quote(string(f)) + "; lines are one-based")
 	}
 
-	return Refusal{File: f, Subject: subject, Why: why, Line: line}
+	sensitive := Sensitive(0)
+	for _, m := range marks {
+		sensitive |= m
+	}
+
+	return Refusal{File: f, Subject: subject, Why: why, Line: line, Sensitive: sensitive}
 }
 
 // Describable is anything that can say what was refused and where; the bool

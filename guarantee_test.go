@@ -10,7 +10,7 @@ import (
 // compilecheck_test.go must fail to build. This test pins the runtime half:
 // errors.As never matches across reason domains.
 func TestCrossDomainErrorsAsDistinct(t *testing.T) {
-	var chain error = Because[testReason]{What: Refusal{File: "", Line: 0, Subject: "", Why: ""}, Reason: testRefused, Cause: nil}
+	var chain error = Because[testReason]{What: Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, Reason: testRefused, Cause: nil}
 
 	if _, ok := errors.AsType[Because[otherReason]](chain); ok {
 		t.Fatal("errors.AsType matched a Because[testReason] as Because[otherReason]; the domains leaked")
@@ -22,7 +22,7 @@ func TestCrossDomainErrorsAsDistinct(t *testing.T) {
 }
 
 func TestEmptyBecauseRendersEmpty(t *testing.T) {
-	b := Because[testReason]{What: Refusal{File: "", Line: 0, Subject: "", Why: ""}, Reason: "", Cause: nil}
+	b := Because[testReason]{What: Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, Reason: "", Cause: nil}
 	if got := b.Error(); got != "" {
 		t.Fatalf("Error() = %q, want empty", got)
 	}
@@ -30,7 +30,7 @@ func TestEmptyBecauseRendersEmpty(t *testing.T) {
 
 func TestCauseTailAfterSentencePunctuation(t *testing.T) {
 	b := Because[testReason]{
-		What:   Refusal{File: "", Line: 0, Subject: "", Why: "Renew it."},
+		What:   Refusal{File: "", Line: 0, Subject: "", Why: "Renew it.", Sensitive: 0},
 		Reason: testRefused,
 		Cause:  errTestSentinel,
 	}
@@ -43,7 +43,7 @@ func TestCauseTailAfterSentencePunctuation(t *testing.T) {
 
 func TestCauseTailNoDoublePunctuation(t *testing.T) {
 	b := Because[testReason]{
-		What:   Refusal{File: "", Line: 0, Subject: "server.tls!", Why: "Rename it."},
+		What:   Refusal{File: "", Line: 0, Subject: "server.tls!", Why: "Rename it.", Sensitive: 0},
 		Reason: testRefused,
 		Cause:  nil,
 	}
@@ -55,7 +55,7 @@ func TestCauseTailNoDoublePunctuation(t *testing.T) {
 }
 
 func TestDescribableInterfaceSatisfied(t *testing.T) {
-	var d Describable = testDescriber{what: Refusal{File: testFile, Line: 0, Subject: testSubject, Why: ""}, misses: false}
+	var d Describable = testDescriber{what: Refusal{File: testFile, Line: 0, Subject: testSubject, Why: "", Sensitive: 0}, misses: false}
 
 	b := From(testRefused, d)
 

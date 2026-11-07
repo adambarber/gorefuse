@@ -17,7 +17,7 @@ func (d testDescriber) Describe() (Refusal, bool) {
 func TestAtBuildsRefusal(t *testing.T) {
 	got := At(testFile, 7, testSubject, Why("Fix it."))
 
-	want := Refusal{File: testFile, Subject: testSubject, Why: "Fix it.", Line: 7}
+	want := Refusal{File: testFile, Subject: testSubject, Why: "Fix it.", Line: 7, Sensitive: 0}
 	if got != want {
 		t.Fatalf("At() = %+v, want %+v", got, want)
 	}
@@ -31,13 +31,13 @@ func TestAtZeroLineIsWholeFile(t *testing.T) {
 }
 
 func TestBecauseFromDescribable(t *testing.T) {
-	b := From(testRefused, testDescriber{what: Refusal{File: testFile, Line: 0, Subject: testSubject, Why: ""}, misses: false})
+	b := From(testRefused, testDescriber{what: Refusal{File: testFile, Line: 0, Subject: testSubject, Why: "", Sensitive: 0}, misses: false})
 
 	assertRender(t, b, wantFrameSubject)
 }
 
 func TestFromWithoutDescription(t *testing.T) {
-	b := From(testRefused, testDescriber{what: Refusal{File: "", Line: 0, Subject: "", Why: ""}, misses: true})
+	b := From(testRefused, testDescriber{what: Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, misses: true})
 
 	assertRender(t, b, testRendered)
 }

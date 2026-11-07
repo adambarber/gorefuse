@@ -7,10 +7,10 @@ import (
 
 func TestCarriageReturnNeutralized(t *testing.T) {
 	cases := map[string]Because[testReason]{
-		"CR in subject": {What: Refusal{File: "", Line: 0, Subject: "a\rb", Why: ""}, Reason: testRefused, Cause: nil},
-		"CR in why":     {What: Refusal{File: "", Line: 0, Subject: "", Why: "Fix it.\rSoon."}, Reason: testRefused, Cause: nil},
-		"CR in file":    {What: Refusal{File: "a\rb.go", Line: 3, Subject: "", Why: ""}, Reason: testRefused, Cause: nil},
-		"CR in reason":  {What: Refusal{File: "", Line: 0, Subject: "", Why: ""}, Reason: "re\rfused", Cause: nil},
+		"CR in subject": {What: Refusal{File: "", Line: 0, Subject: "a\rb", Why: "", Sensitive: 0}, Reason: testRefused, Cause: nil},
+		"CR in why":     {What: Refusal{File: "", Line: 0, Subject: "", Why: "Fix it.\rSoon.", Sensitive: 0}, Reason: testRefused, Cause: nil},
+		"CR in file":    {What: Refusal{File: "a\rb.go", Line: 3, Subject: "", Why: "", Sensitive: 0}, Reason: testRefused, Cause: nil},
+		"CR in reason":  {What: Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, Reason: "re\rfused", Cause: nil},
 	}
 
 	wants := map[string]string{
@@ -33,12 +33,12 @@ func TestCarriageReturnNeutralized(t *testing.T) {
 
 func TestInvalidUTF8BecomesReplacementChar(t *testing.T) {
 	// strings.ToValidUTF8 replaces each run of invalid bytes with one U+FFFD.
-	assertRender(t, because(Refusal{File: "", Line: 0, Subject: "", Why: ""}, testReason("bad \xff\xfe tail"), nil),
+	assertRender(t, because(Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, testReason("bad \xff\xfe tail"), nil),
 		"bad \uFFFD tail")
 }
 
 func TestESCEscapeNeutralized(t *testing.T) {
-	b := because(Refusal{File: "", Line: 0, Subject: "a\x1b[31mb", Why: ""}, "re\x1bfused", nil)
+	b := because(Refusal{File: "", Line: 0, Subject: "a\x1b[31mb", Why: "", Sensitive: 0}, "re\x1bfused", nil)
 
 	assertRender(t, b, "re\uFFFDfused: a\uFFFD[31mb")
 
@@ -48,16 +48,16 @@ func TestESCEscapeNeutralized(t *testing.T) {
 }
 
 func TestBidiOverridePassesThrough(t *testing.T) {
-	assertRender(t, because(Refusal{File: "", Line: 0, Subject: "", Why: ""}, testReason("dir\u202Ecru/"), nil),
+	assertRender(t, because(Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, testReason("dir\u202Ecru/"), nil),
 		"dir\u202Ecru/")
 }
 
 func TestWhitespaceOnlyWhyContributesNothing(t *testing.T) {
 	cases := map[string]Because[testReason]{
-		"why is space and tab":      {What: Refusal{File: "", Line: 0, Subject: "", Why: " \t"}, Reason: testRefused, Cause: nil},
-		"why is newline":            {What: Refusal{File: "", Line: 0, Subject: "", Why: "\n"}, Reason: testRefused, Cause: nil},
-		"real why still renders":    {What: Refusal{File: "", Line: 0, Subject: "", Why: " \t" + Why(testFix) + " "}, Reason: testRefused, Cause: nil},
-		"why-less frame unaffected": {What: Refusal{File: testFile, Line: 0, Subject: "", Why: ""}, Reason: testRefused, Cause: nil},
+		"why is space and tab":      {What: Refusal{File: "", Line: 0, Subject: "", Why: " \t", Sensitive: 0}, Reason: testRefused, Cause: nil},
+		"why is newline":            {What: Refusal{File: "", Line: 0, Subject: "", Why: "\n", Sensitive: 0}, Reason: testRefused, Cause: nil},
+		"real why still renders":    {What: Refusal{File: "", Line: 0, Subject: "", Why: " \t" + Why(testFix) + " ", Sensitive: 0}, Reason: testRefused, Cause: nil},
+		"why-less frame unaffected": {What: Refusal{File: testFile, Line: 0, Subject: "", Why: "", Sensitive: 0}, Reason: testRefused, Cause: nil},
 	}
 
 	wants := map[string]string{

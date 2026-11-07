@@ -13,12 +13,14 @@ type Subject string
 type Why string
 
 // Refusal describes what was refused: where it sits, what it is, and the fix.
-// Build one only through At.
+// Build one only through At. A slot marked in Sensitive renders as
+// Redacted — see Sensitive.
 type Refusal struct {
-	File    File
-	Subject Subject
-	Why     Why
-	Line    Line
+	File      File
+	Subject   Subject
+	Why       Why
+	Line      Line
+	Sensitive Sensitive
 }
 
 // Because carries one refusal of reason type R; the type parameter is the

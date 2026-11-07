@@ -8,7 +8,7 @@ import (
 // nils (untyped, or typed nil of pointer/map/slice/func/chan kind) resolve to
 // the reason alone; a nil nested in a struct describer is Describe's contract.
 func From[R any](reason R, d Describable) Because[R] {
-	b := Because[R]{Reason: reason, Cause: nil, What: Refusal{File: "", Line: 0, Subject: "", Why: ""}}
+	b := Because[R]{Reason: reason, Cause: nil, What: Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}}
 
 	if isNilDescribable(d) {
 		return b

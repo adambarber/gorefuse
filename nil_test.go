@@ -17,7 +17,7 @@ type plainDescriber struct{}
 func (d *plainDescriber) Describe() (Refusal, bool) {
 	_ = *d // nil receiver panics here; the hostile shape From must not reach
 
-	return Refusal{File: "", Line: 0, Subject: "", Why: ""}, true
+	return Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, true
 }
 
 // Each kind below implements Describable on a nil-able type, so a nil value in
