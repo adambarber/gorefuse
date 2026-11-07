@@ -30,12 +30,12 @@ const sensitiveMask = SubjectSensitive | WhySensitive | CauseSensitive
 // markedSensitive renders a slot the redaction stage produces: the token
 // when marked, the text otherwise. An empty slot stays empty — redaction
 // never fabricates a contribution.
-func markedSensitive(text Subject, mark Sensitive, marks Sensitive) Subject {
+func markedSensitive(text Subject, mark, marks Sensitive) Subject {
 	return markedSensitiveWhy(Why(text), mark, marks).toSubject()
 }
 
 // markedSensitiveWhy is the redaction stage for the Why slot.
-func markedSensitiveWhy(text Why, mark Sensitive, marks Sensitive) Why {
+func markedSensitiveWhy(text Why, mark, marks Sensitive) Why {
 	if strings.TrimSpace(string(text)) == "" || marks&mark == 0 {
 		return text
 	}

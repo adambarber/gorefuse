@@ -184,9 +184,9 @@ linters:
         - return
         - assign
     forbidigo:
+      analyze-types: true
       forbid:
         - pattern: '^any$'
-          analyze-types: true
           msg: "a bare `any` is an untyped value; name the domain kind"
     gocognit:
       min-complexity: 10
@@ -287,25 +287,25 @@ linters:
           - gochecknoglobals
           - wastedassign
 
-  run:
-    timeout: 5m
-    tests: true
-    modules-download-mode: readonly
+run:
+  timeout: 5m
+  tests: true
+  modules-download-mode: readonly
 
-  issues:
-    max-same-issues: 0
-    max-issues-per-linter: 0
-    new: false
+issues:
+  max-same-issues: 0
+  max-issues-per-linter: 0
+  new: false
 
-  formatters:
-    enable:
-      - gofumpt
-      - goimports
-    settings:
-      gofumpt:
-        extra:
-          group-params: true
-          clothe-returns: true
-      goimports:
-        local-prefixes:
-          - github.com/adambarber/gorefuse
+formatters:
+  enable:
+    - gofumpt
+    - goimports
+  settings:
+    gofumpt:
+      extra:
+        group-params: true
+        clothe-returns: true
+    goimports:
+      local-prefixes:
+        - github.com/adambarber/gorefuse

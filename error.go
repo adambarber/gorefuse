@@ -30,9 +30,11 @@ func (b Because[R]) Error() string {
 		msg = frame
 	}
 
-	for _, part := range []string{fmt.Sprint(b.Reason),
+	for _, part := range []string{
+		fmt.Sprint(b.Reason),
 		string(markedSensitive(b.What.Subject, SubjectSensitive, b.What.Sensitive)),
-		causeTail(b)} {
+		causeTail(b),
+	} {
 		if part = scrub(strings.TrimSpace(part)); part != "" {
 			if msg != "" {
 				msg += ": "
