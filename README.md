@@ -74,4 +74,3 @@ API is stable modulo the pre-1.0 conventions of an early library.
 ## Roadmap
 
 - **Structured rendering of refusals**: a refusal should be serializable into a machine-readable format. The prose render stays the human path; serialization must not fork the render contract (stable order, whitespace rules), so the structured form derives from the same described parts, not re-rendered. Structured rendering may also carry per-part sensitivity for `Reason` once a schema exists — today the marks cannot cover it.
-- **A wiring integration** in [goconf](https://github.com/adambarber/goconf), a sister library for configuration: config errors surfaced as refusals pointing at the file and key that caused them.
