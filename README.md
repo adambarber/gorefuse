@@ -10,6 +10,7 @@ go get github.com/adambarber/gorefuse
 package main
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/adambarber/gorefuse"
@@ -19,6 +20,8 @@ type Reason string
 
 const Denied Reason = "denied"
 
+func (r Reason) Error() string { return string(r) }
+
 func main() {
 	var err error = gorefuse.Because[Reason]{
 		Reason: Denied,
@@ -26,15 +29,21 @@ func main() {
 			gorefuse.Why("bind the port before serving")),
 	}
 	fmt.Println(err)
+
+	// Switch on the refusal's identity, not its words:
+	wrapped := fmt.Errorf("starting server: %w", err)
+	fmt.Println(errors.Is(wrapped, Denied))
 }
 
 // Output:
 // Error: server.go:42: denied: listen :8080. bind the port before serving
+// true
 ```
 
 At a glance — use gorefuse if you want:
 
 - a refusal carried as an `error` with a typed reason as its identity: `Because[R]`
+- a reason you can switch on: `errors.Is(err, Denied)` matches through any wrapping (when `R` is an error type, matching follows `errors.Is` semantics on the reason value)
 - one constructor that builds the refusal and guarantees the frame: `At`
 - named slots instead of prose fragments: `Refusal` with `File`, `Line`, `Subject`, `Why`
 - refusals described by values, nil-safe: `Describable` and `From[R]`
