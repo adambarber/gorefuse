@@ -1,5 +1,7 @@
 package gorefuse
 
+import "errors"
+
 // File is the name of the file a refusal speaks about.
 type File string
 
@@ -34,3 +36,18 @@ type Because[R any] struct {
 
 // Unwrap exposes the Cause to errors.Is and errors.As.
 func (b Because[R]) Unwrap() error { return b.Cause }
+
+// Is reports whether target is (or wraps) b.Reason, so errors.Is can switch
+// on the reason: R an error follows errors.Is semantics on the reason value,
+// R not an error matches by any-equality only; nil never bridges domains.
+func (b Because[R]) Is(target error) bool {
+	if target == nil {
+		return false
+	}
+
+	if err, ok := any(b.Reason).(error); ok {
+		return errors.Is(err, target)
+	}
+
+	return any(b.Reason) == any(target)
+}
