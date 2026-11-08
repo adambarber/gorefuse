@@ -59,7 +59,7 @@ func TestFromNilDescribableKinds(t *testing.T) {
 	for name, d := range kinds {
 		t.Run(name, func(t *testing.T) {
 			assertNoPanic(t, testContext("From panicked on a nil-"+name+" Describable"), func() {
-				assertRender(t, From(testRefused, d), testRendered)
+				assertRender(t, From(testRefused, d), "Error: "+testRendered)
 			})
 		})
 	}

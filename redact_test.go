@@ -10,21 +10,21 @@ func TestMarkedSubjectRendersToken(t *testing.T) {
 	b := because(Refusal{File: testFile, Line: 0, Subject: testSubject, Why: "", Sensitive: 0}, testRefused, nil)
 	b.What.Sensitive = SubjectSensitive
 
-	assertRender(t, b, "f.toml: refused: "+Redacted)
+	assertRender(t, b, renderText("Error: "+string(testFile)+": refused: "+Redacted))
 }
 
 func TestMarkedWhyRendersToken(t *testing.T) {
 	b := because(Refusal{File: "", Line: 0, Subject: "", Why: "Rotate the secret now.", Sensitive: 0}, testRefused, nil)
 	b.What.Sensitive = WhySensitive
 
-	assertRender(t, b, testRendered+". "+Redacted)
+	assertRender(t, b, "Error: "+testRendered+". "+Redacted)
 }
 
 func TestBothSlotsMarkedRenderToken(t *testing.T) {
 	b := because(Refusal{File: "", Line: 0, Subject: testSubject, Why: "Rotate the secret now.", Sensitive: 0}, testRefused, nil)
 	b.What.Sensitive = SubjectSensitive | WhySensitive
 
-	assertRender(t, b, testRendered+": "+Redacted+". "+Redacted)
+	assertRender(t, b, "Error: "+testRendered+": "+Redacted+". "+Redacted)
 }
 
 func TestMarkedEmptyWhyStillContributesNothing(t *testing.T) {
@@ -33,14 +33,14 @@ func TestMarkedEmptyWhyStillContributesNothing(t *testing.T) {
 	b := because(Refusal{File: "", Line: 0, Subject: "", Why: "  ", Sensitive: 0}, testRefused, nil)
 	b.What.Sensitive = WhySensitive
 
-	assertRender(t, b, testRendered)
+	assertRender(t, b, "Error: "+testRendered)
 }
 
 func TestMarkedSlotTokenSurvivesScrub(t *testing.T) {
 	b := because(Refusal{File: "", Line: 0, Subject: "a\rb\x1bc\xff", Why: "x\r\x1b\xff", Sensitive: 0}, testRefused, nil)
 	b.What.Sensitive = SubjectSensitive | WhySensitive
 
-	assertRender(t, b, testRendered+": "+Redacted+". "+Redacted)
+	assertRender(t, b, "Error: "+testRendered+": "+Redacted+". "+Redacted)
 }
 
 func TestMarkingLeavesIdentityIntact(t *testing.T) {

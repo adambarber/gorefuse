@@ -39,7 +39,7 @@ func TestBecauseFromDescribable(t *testing.T) {
 func TestFromWithoutDescription(t *testing.T) {
 	b := From(testRefused, testDescriber{what: Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, misses: true})
 
-	assertRender(t, b, testRendered)
+	assertRender(t, b, "Error: "+testRendered)
 }
 
 func TestAtRefusesWhitespaceFile(t *testing.T) {
@@ -79,13 +79,13 @@ func TestAtStoresTrimmedFile(t *testing.T) {
 		t.Fatalf("At().File = %q, want %q", got.File, "spaced.go")
 	}
 
-	assertRender(t, From(testRefused, testDescriber{what: got, misses: false}), renderText("spaced.go:2: refused: "+string(testSubject)))
+	assertRender(t, From(testRefused, testDescriber{what: got, misses: false}), renderText("Error: spaced.go:2: refused: "+string(testSubject)))
 }
 
 func TestMarkedCauseSuppressesCauseTail(t *testing.T) {
 	b := because(Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: CauseSensitive}, testRefused, errTestSentinel)
 
-	assertRender(t, b, testRendered)
+	assertRender(t, b, "Error: "+testRendered)
 }
 
 func TestFromForgedNewlineFileRendersPlaceholder(t *testing.T) {
@@ -95,7 +95,7 @@ func TestFromForgedNewlineFileRendersPlaceholder(t *testing.T) {
 		File: "evil\n10.0.0.1", Line: 5, Subject: "", Why: "", Sensitive: 0,
 	}, misses: false})
 
-	assertRender(t, b, invalidFrame+": refused")
+	assertRender(t, b, "Error: "+invalidFrame+": refused")
 }
 
 func TestFromForgedTrailingDigitsFileRendersPlaceholder(t *testing.T) {
@@ -103,7 +103,7 @@ func TestFromForgedTrailingDigitsFileRendersPlaceholder(t *testing.T) {
 		File: "fake:123", Line: 4, Subject: "", Why: "", Sensitive: 0,
 	}, misses: false})
 
-	assertRender(t, b, invalidFrame+": refused")
+	assertRender(t, b, "Error: "+invalidFrame+": refused")
 }
 
 func TestFromForgedTrailingDigitsFileZeroLineStillPlaceholder(t *testing.T) {
@@ -113,7 +113,7 @@ func TestFromForgedTrailingDigitsFileZeroLineStillPlaceholder(t *testing.T) {
 		File: "fake:123", Line: 0, Subject: "", Why: "", Sensitive: 0,
 	}, misses: false})
 
-	assertRender(t, b, invalidFrame+": refused")
+	assertRender(t, b, "Error: "+invalidFrame+": refused")
 }
 
 func TestFrameSkipsNegativeLine(t *testing.T) {
@@ -121,10 +121,10 @@ func TestFrameSkipsNegativeLine(t *testing.T) {
 	// the only shape the parser contract allows; the line is skipped.
 	b := because(Refusal{File: testFile, Line: -3, Subject: "", Why: "", Sensitive: 0}, testRefused, nil)
 
-	assertRender(t, b, renderText(string(testFile)+": refused"))
+	assertRender(t, b, renderText("Error: "+string(testFile)+": refused"))
 }
 
 func TestFrameAcceptsInteriorColonFile(t *testing.T) {
 	assertRender(t, because(At("a:b.go", 3, "", Why(testFix)), testRefused, nil),
-		"a:b.go:3: refused. "+testFix)
+		"Error: a:b.go:3: refused. "+testFix)
 }

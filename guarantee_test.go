@@ -49,7 +49,7 @@ func TestCauseTailNoDoublePunctuation(t *testing.T) {
 	}
 
 	got := b.Error()
-	if got != "refused: server.tls! Rename it." {
+	if got != "Error: refused: server.tls! Rename it." {
 		t.Fatalf("Error() = %q, want single punctuation before the fix", got)
 	}
 }

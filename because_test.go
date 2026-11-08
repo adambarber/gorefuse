@@ -22,20 +22,27 @@ const testFile = File("f.toml")
 
 const testSubject = Subject("server.tls")
 
-const wantFrameSubject = "f.toml: refused: server.tls"
+const wantFrameSubject = "Error: f.toml: refused: server.tls"
+
+// TestVerdictPrefixPinsErrorLabel pins the owner's verdict-label ruling:
+// Error() output begins with "Error: " so a render is marked as an error.
+func TestVerdictPrefixPinsErrorLabel(t *testing.T) {
+	assertRender(t, because(Refusal{File: testFile, Line: 3, Subject: testSubject, Why: "", Sensitive: 0}, testRefused, nil),
+		renderText("Error: "+string(testFile)+":3: "+string(testRefused)+": "+string(testSubject)))
+}
 
 func TestReasonAlone(t *testing.T) {
-	assertRender(t, because(Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, testMissing, nil), "missing")
+	assertRender(t, because(Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, testMissing, nil), "Error: missing")
 }
 
 func TestFramePrefixWholeFile(t *testing.T) {
 	assertRender(t, because(Refusal{File: "config.toml", Line: 0, Subject: "", Why: "", Sensitive: 0}, testRefused, nil),
-		"config.toml: refused")
+		"Error: config.toml: refused")
 }
 
 func TestFramePrefixWithLine(t *testing.T) {
 	assertRender(t, because(Refusal{File: "config.toml", Line: 12, Subject: "", Why: "", Sensitive: 0}, testRefused, nil),
-		"config.toml:12: refused")
+		"Error: config.toml:12: refused")
 }
 
 func TestSubjectAppends(t *testing.T) {
@@ -45,17 +52,17 @@ func TestSubjectAppends(t *testing.T) {
 
 func TestWhyAppendsAsSentence(t *testing.T) {
 	assertRender(t, because(Refusal{File: testFile, Line: 0, Subject: testSubject, Why: "Rotate the certificate.", Sensitive: 0}, testRefused, nil),
-		"f.toml: refused: server.tls. Rotate the certificate.")
+		"Error: f.toml: refused: server.tls. Rotate the certificate.")
 }
 
 func TestCauseTail(t *testing.T) {
 	assertRender(t, because(Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, testRefused, errTestSentinel),
-		"refused: root cause")
+		"Error: refused: root cause")
 }
 
 func TestFullRenderStableOrder(t *testing.T) {
 	assertRender(t, because(Refusal{File: testFile, Line: 3, Subject: testSubject, Why: "Renew it.", Sensitive: 0}, testRefused, errTestSentinel),
-		"f.toml:3: refused: server.tls: root cause. Renew it.")
+		"Error: f.toml:3: refused: server.tls: root cause. Renew it.")
 }
 
 func TestUnwrapToCause(t *testing.T) {
@@ -73,7 +80,7 @@ func TestUnwrapNilCause(t *testing.T) {
 }
 
 func TestReasonRendersStringer(t *testing.T) {
-	assertRender(t, because(Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, stringerReason{}, nil), "rendered")
+	assertRender(t, because(Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, stringerReason{}, nil), "Error: rendered")
 }
 
 type stringerReason struct{}

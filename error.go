@@ -6,9 +6,10 @@ import (
 	"unicode/utf8"
 )
 
-// Error renders the refusal in a stable order: frame prefix, reason, subject,
-// cause tail, then the fix as a separate sentence. Every contribution slot —
-// reason, subject, cause, File, and Why — obeys one rule: the slot's trimmed
+// Error renders the refusal in a stable order: verdict label, frame prefix,
+// reason, subject, cause tail, then the fix as a separate sentence. Every
+// contribution slot — verdict, reason, subject, cause, File, and Why — obeys
+// one rule: the slot's trimmed
 // text is computed once, and empty-after-trim means the slot contributes
 // nothing, no connector. An embedded newline passes through, so a multi-line
 // reason keeps its shape under the grep-able frame. The rendered output is
@@ -44,10 +45,14 @@ func (b Because[R]) Error() string {
 		}
 	}
 
-	return msg + b.What.sentenceTail(msg) +
-		scrub(strings.TrimSpace(string(markedSensitiveWhy(b.What.Why, WhySensitive, b.What.Sensitive))))
-}
+	why := scrub(strings.TrimSpace(string(markedSensitiveWhy(b.What.Why, WhySensitive, b.What.Sensitive))))
 
+	if msg == "" && why == "" {
+		return ""
+	}
+
+	return "Error: " + msg + b.What.sentenceTail(msg) + why
+}
 // scrub guarantees one slot's rendered text is well-formed UTF-8 with no raw
 // carriage return and no ESC byte: invalid UTF-8 and ESC become U+FFFD, each
 // \r becomes a space. Embedded newlines pass through untouched.

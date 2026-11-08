@@ -36,8 +36,8 @@ func TestHandBuiltDanglingColonFileRendersPlaceholder(t *testing.T) {
 		What:   Refusal{File: File("a.go:"), Subject: Subject("s"), Why: Why(""), Line: 7, Sensitive: 0},
 	}
 
-	if got := b.Error(); got != invalidFrame+": r: s" {
-		t.Fatalf("render = %q, want %q", got, invalidFrame+": r: s")
+	if got := b.Error(); got != "Error: "+invalidFrame+": r: s" {
+		t.Fatalf("render = %q, want %q", got, "Error: "+invalidFrame+": r: s")
 	}
 }
 

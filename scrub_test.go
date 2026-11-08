@@ -22,7 +22,7 @@ func TestCarriageReturnNeutralized(t *testing.T) {
 
 	for name, b := range cases {
 		t.Run(name, func(t *testing.T) {
-			assertRender(t, b, renderText(wants[name]))
+			assertRender(t, b, renderText("Error: "+wants[name]))
 
 			if got := b.Error(); strings.ContainsRune(got, '\r') {
 				t.Fatalf("Error() = %q still contains a raw carriage return", got)
@@ -34,13 +34,13 @@ func TestCarriageReturnNeutralized(t *testing.T) {
 func TestInvalidUTF8BecomesReplacementChar(t *testing.T) {
 	// strings.ToValidUTF8 replaces each run of invalid bytes with one U+FFFD.
 	assertRender(t, because(Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, testReason("bad \xff\xfe tail"), nil),
-		"bad \uFFFD tail")
+		"Error: bad \uFFFD tail")
 }
 
 func TestESCEscapeNeutralized(t *testing.T) {
 	b := because(Refusal{File: "", Line: 0, Subject: "a\x1b[31mb", Why: "", Sensitive: 0}, "re\x1bfused", nil)
 
-	assertRender(t, b, "re\uFFFDfused: a\uFFFD[31mb")
+	assertRender(t, b, "Error: re\uFFFDfused: a\uFFFD[31mb")
 
 	if got := b.Error(); strings.ContainsRune(got, '\x1b') {
 		t.Fatalf("Error() = %q still contains a raw ESC byte", got)
@@ -49,7 +49,7 @@ func TestESCEscapeNeutralized(t *testing.T) {
 
 func TestBidiOverridePassesThrough(t *testing.T) {
 	assertRender(t, because(Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, testReason("dir\u202Ecru/"), nil),
-		"dir\u202Ecru/")
+		"Error: dir\u202Ecru/")
 }
 
 func TestWhitespaceOnlyWhyContributesNothing(t *testing.T) {
@@ -69,7 +69,7 @@ func TestWhitespaceOnlyWhyContributesNothing(t *testing.T) {
 
 	for name, b := range cases {
 		t.Run(name, func(t *testing.T) {
-			assertRender(t, b, renderText(wants[name]))
+			assertRender(t, b, renderText("Error: "+wants[name]))
 		})
 	}
 }

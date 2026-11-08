@@ -29,7 +29,7 @@ func main() {
 }
 
 // Output:
-// server.go:42: denied: listen :8080. bind the port before serving
+// Error: server.go:42: denied: listen :8080. bind the port before serving
 ```
 
 At a glance — use gorefuse if you want:
@@ -38,7 +38,7 @@ At a glance — use gorefuse if you want:
 - one constructor that builds the refusal and guarantees the frame: `At`
 - named slots instead of prose fragments: `Refusal` with `File`, `Line`, `Subject`, `Why`
 - refusals described by values, nil-safe: `Describable` and `From[R]`
-- a render you can parse and grep, byte for byte, forever: the render contract below
+- a render you can parse and grep, byte for byte, forever: the render contract below (v0.1.1 added the `Error: ` verdict label — a breaking change to exact-byte expectations, accepted pre-1.0)
 
 ## Why
 
@@ -48,7 +48,7 @@ What it does **not** do: no structured/JSON rendering yet (roadmap), no retry or
 
 ## The render contract
 
-Render order is fixed: **frame prefix → reason → subject → cause tail → fix sentence**. Every contribution slot — reason, subject, cause, `File`, `Why` — obeys one rule: trimmed once, and empty-after-trim means the slot contributes nothing, no connector. The zero `Because[R]` for a string-kinded reason renders `""` — and is still a valid `error` with identity, because the reason type is the identity, not the words.
+Render order is fixed: **verdict label → frame prefix → reason → subject → cause tail → fix sentence**. Every render begins with the `Error: ` verdict label — nothing about a log line should leave the reader guessing whether it marks a failure — and the label obeys the same skip-if-empty rule as every slot: the zero `Because[R]` for a string-kinded reason renders `""`, label and all, and is still a valid `error` with identity, because the reason type is the identity, not the words. Every contribution slot — reason, subject, cause, `File`, `Why` — obeys one rule: trimmed once, and empty-after-trim means the slot contributes nothing, no connector.
 
 - **Well-formed UTF-8, always.** Invalid UTF-8 and the ESC byte become U+FFFD, so a hostile slot cannot break a UTF-8 log encoder or forge terminal output; each `\r` becomes a space. Pinned by `scrub_test.go` and `edge_test.go`.
 - **Marked-sensitive slots render as `[redacted]`.** gorefuse cannot know what a secret is — the caller classifies; a slot marked with `Sensitive` renders as the fixed token `[redacted]` regardless of content, a marked `Cause` renders nothing at all (the cause is a tail, so it has no single-token form), and the token itself is never scrubbed or transformed. The marks cover Subject, Why, and Cause — **never `Reason`**, which is of arbitrary caller type `R` and outside what gorefuse can redact: never put secret material in `Reason`. This is defense-in-depth, not the primary wall. Pinned by `redact_test.go`.
@@ -70,7 +70,7 @@ stdlib only; reflection is used only to detect nil describables in `From`.
 
 ## Status
 
-API is stable modulo the pre-1.0 conventions of an early library.
+API is stable modulo the pre-1.0 conventions of an early library. The render contract changed once pre-1.0: v0.1.1 added the `Error: ` verdict label at the head of every non-empty render — a breaking change to exact-byte expectations, accepted because nothing in v0.1.0 marked the render as an error and the label is what log readers lock onto. Exact-byte pins in this tree were updated in the same commits, not deleted.
 
 ## Roadmap
 
