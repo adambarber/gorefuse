@@ -3,6 +3,7 @@ package gorefuse
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -58,6 +59,25 @@ func TestWhyAppendsAsSentence(t *testing.T) {
 func TestCauseTail(t *testing.T) {
 	assertRender(t, because(Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, testRefused, errTestSentinel),
 		"Error: refused: root cause")
+}
+
+// TestNestedBecauseCauseCarriesItsOwnLabel pins the owner's ruling: a Because
+// used as a cause renders with its own verdict label — `Error: missing: Error:
+// refused` — not stripped. The nested label is never at line start, so
+// line-start grep (`^Error:`) still sees exactly one verdict.
+func TestNestedBecauseCauseCarriesItsOwnLabel(t *testing.T) {
+	inner := Because[testReason]{Reason: testRefused, Cause: nil, What: Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}}
+	outer := Because[testReason]{Reason: testMissing, Cause: inner, What: Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}}
+
+	assertRender(t, outer, "Error: missing: Error: refused")
+
+	// The nested label is never at line start: a label only follows the ": "
+	// connector mid-line, so `^Error:` grep sees exactly one verdict.
+	for line := range strings.SplitSeq(outer.Error(), "\n") {
+		if strings.HasPrefix(line, "Error: Error") {
+			t.Fatalf("Error() = %q, a line must not open with a nested label", line)
+		}
+	}
 }
 
 func TestFullRenderStableOrder(t *testing.T) {

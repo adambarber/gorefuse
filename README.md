@@ -38,7 +38,7 @@ At a glance — use gorefuse if you want:
 - one constructor that builds the refusal and guarantees the frame: `At`
 - named slots instead of prose fragments: `Refusal` with `File`, `Line`, `Subject`, `Why`
 - refusals described by values, nil-safe: `Describable` and `From[R]`
-- a render you can parse and grep, byte for byte, forever: the render contract below (v0.1.1 added the `Error: ` verdict label — a breaking change to exact-byte expectations, accepted pre-1.0)
+- a render you can parse and grep from v0.1.1 onward, byte for byte: the render contract below. The verdict label was added in v0.1.1 — the Status section owns that change.
 
 ## Why
 
@@ -58,6 +58,8 @@ Render order is fixed: **verdict label → frame prefix → reason → subject �
 - **`At` panics on a forged or malformed frame.** The five conditions: a newline-bearing `File`, a trailing `:digits` `File`, a colon-terminated `File` (a dangling `:` in the frame), a negative `Line`, and a whitespace-only `File` with a non-zero `Line` — plus unknown `Sensitive` bits. A `File` ending in `:` followed by non-ASCII digits is prose by contract: only ASCII `:digits` is the pairing grammar. `At` stores the `File` trimmed, so the stored value equals the rendered frame modulo the scrub stage (a stored dirty byte renders as U+FFFD; storage keeps the caller's value). Pinned by `at_test.go`.
 - **errors.Is / errors.As unwrap to `Cause`** via `Unwrap`. Pinned by `because_test.go`.
 - **errors.Is against the reason.** `Because[R]` carries an `Is(target error) bool`, and it is on the carrier itself so `errors.Is(err, someReason)` matches through `Because` and any wrapping. When `R` is an error type, matching follows `errors.Is` semantics on the reason value; when `R` is not an error, matching is any-equality, so a non-error reason matches only an equal non-error target. A nil target never matches, and a `Because[otherR]` never bridges domains — the compile-time wall holds through `Is` too. Pinned by `is_test.go`.
+- **A Because used as a cause carries its own verdict label.** `Because{Cause: innerBecause}` renders `Error: missing: Error: refused` — the nested label is never stripped and never sits at line start, so line-start grep (`^Error:`) still sees exactly one verdict per render. Pinned by `TestNestedBecauseCauseCarriesItsOwnLabel`.
+- **Composition contract.** A consuming library puts its location prose (`unknown field "extra" in /path/app.json, line 1`) in the Reason and the remediation sentence in the Why; the fixed render order delivers the documented model shape byte for byte, and the grep-able `path:line:` frame is the same refusal's machine-parseable form. Pinned by `composition_test.go`.
 - **The compile-time wall.** The type parameter `R` is the reason domain: `errors.As` never matches `Because[otherReason]` against a `Because[testReason]`, and a tag-gated cross-domain assignment test (`compilecheck_test.go`) fails the build if two domains could ever collapse. Pinned by `guarantee_test.go`.
 
 ## Tradeoffs
@@ -70,7 +72,7 @@ stdlib only; reflection is used only to detect nil describables in `From`.
 
 ## Status
 
-API is stable modulo the pre-1.0 conventions of an early library. The render contract changed once pre-1.0: v0.1.1 added the `Error: ` verdict label at the head of every non-empty render — a breaking change to exact-byte expectations, accepted because nothing in v0.1.0 marked the render as an error and the label is what log readers lock onto. Exact-byte pins in this tree were updated in the same commits, not deleted.
+API is stable modulo the pre-1.0 conventions of an early library. The render contract changed once pre-1.0: v0.1.1 added the `Error: ` verdict label at the head of every non-empty render — a breaking change to exact-byte expectations, accepted because nothing in v0.1.0 marked the render as an error and the label is what log readers lock onto. Exact-byte pins in this tree were updated in the same commits, not deleted; the contract is byte-stable from v0.1.1 onward.
 
 ## Roadmap
 
