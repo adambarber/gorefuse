@@ -7,8 +7,8 @@ ignore positiveFixtures {
 }
 
 ignore errorInterface {
-    paths  = ["error.go", "because_test.go", "tail_test.go", "ws_test.go", "cause_test.go", "nil_test.go", "at_test.go", "is_test.go"]
-    reason = "the stdlib error and fmt.Stringer interfaces, and testing's t.Run table names and string wants, are declared with bare string positions; the interfaces and the test harness are the stdlib's spelling, so the named-kind rule cannot apply to the method set that satisfies them"
+    paths  = ["error.go", "because_test.go", "tail_test.go", "ws_test.go", "cause_test.go", "nil_test.go", "at_test.go", "is_test.go", "fuzz_test.go"]
+    reason = "the stdlib error and fmt.Stringer interfaces, and testing's t.Run table names and string wants, are declared with bare string positions; the interfaces and the test harness are the stdlib's spelling, so the named-kind rule cannot apply to the method set that satisfies them. fuzz_test.go joins for the same reason: testing.F.Fuzz accepts only the fixed primitive list, so the fuzz body's string slots are the stdlib's spelling too"
     owner  = "platform"
 }
 
