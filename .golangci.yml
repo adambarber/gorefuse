@@ -248,6 +248,11 @@ linters:
         linters:
           - errname
           - forbidigo
+      # error.go's causeTail is generic over R for the same reason as
+      # Because itself; the exclusion covers only that file.
+      - path: error\.go
+        linters:
+          - forbidigo
       # render_test.go's test helpers are generic over the reason kind the
       # same way Because is; a constraint cannot name a domain kind, so `any`
       # is the only permissive spelling. The exclusion covers only that file.
@@ -267,6 +272,7 @@ linters:
           - godot
           - ineffassign
           - mnd
+          - nolintlint   # the no_lint_bypass positive fixture must carry a //nolint to prove the rule bites
           - unused
           - wsl_v5
           - cyclop

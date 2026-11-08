@@ -67,7 +67,7 @@ func scrub(s string) string {
 // causeTail renders the cause's message, or "" when there is no cause or the
 // cause is marked sensitive: a marked cause contributes nothing, as if absent.
 // The cause is a tail, not a slot, so it has no single-token redacted form.
-func causeTail[R any](b Because[R]) string { //nolint:forbidigo // R must accept any reason kind, as in from.go
+func causeTail[R any](b Because[R]) string {
 	if b.Cause == nil || b.What.Sensitive&CauseSensitive != 0 {
 		return ""
 	}
