@@ -53,6 +53,7 @@ func (b Because[R]) Error() string {
 
 	return "Error: " + msg + b.What.sentenceTail(msg) + why
 }
+
 // scrub guarantees one slot's rendered text is well-formed UTF-8 with no raw
 // carriage return and no ESC byte: invalid UTF-8 and ESC become U+FFFD, each
 // \r becomes a space. Embedded newlines pass through untouched.
