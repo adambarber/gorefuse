@@ -4,7 +4,7 @@ version: "2"
 # and where settings could differ, the stricter value wins. A linter appears
 # once, with every setting applied to it, merged.
 #
-# What is NOT here, and why — goconf's policy declares only no_clones.
+# What is NOT here, and why — a consumer's policy declares only no_clones.
 # No BPL budget, layers, or rule table rules exist in this tree;
 # nothing here references them because none are declared.
 
@@ -112,8 +112,8 @@ linters:
     # taste: a house style, not a defect. Each fires on code this repo writes
     # on purpose; a rule that fires on correct code is a rule someone turns off.
     # Each is a global disable because none of these linters apply to any Go
-    # code goconf writes, and each names the taste it guards against.
-    - lll                # line length: goconf writes long rationale lines on purpose
+    # code consumers write, and each names the taste it guards against.
+    - lll                # line length: consumers write long rationale lines on purpose
     - noinlineerr        # guard scoping choice, not a defect
     - nlreturn           # blank line before return: reading choice
     - varnamelen         # short names in short scope are clear
@@ -132,8 +132,8 @@ linters:
     - testifylint        # suite uses the standard library
     - ginkgolinter       # neither ginkgo nor gomega is used
     - dupl               # duplication: policy's no_clones rule owns it
-    - depguard           # import restriction: goconf pins no dependency policy
-    - gomodguard         # module restriction: goconf pins no modules beyond its own
+    - depguard           # import restriction: consumers pin no dependency policy
+    - gomodguard         # module restriction: consumers pin no modules beyond their own
 
   settings:
     errcheck:
@@ -146,11 +146,11 @@ linters:
         - SA
         - S
         - QF
-        - '-ST1000'   # package comment form — goconf's house style
-        - '-ST1003'   # initialism naming — goconf has chosen names
-        - '-ST1020'   # exported comment form — goconf's house style
-        - '-ST1021'   # comment on exported type — goconf's house style
-        - '-ST1022'   # comment on exported var — goconf's house style
+        - '-ST1000'   # package comment form — consumer-repo house style
+        - '-ST1003'   # initialism naming — consumer-repo chosen names
+        - '-ST1020'   # exported comment form — consumer-repo house style
+        - '-ST1021'   # comment on exported type — consumer-repo house style
+        - '-ST1022'   # comment on exported var — consumer-repo house style
     nolintlint:
       require-explanation: true
       require-specific: true

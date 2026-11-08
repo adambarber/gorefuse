@@ -8,7 +8,7 @@ import (
 )
 
 // confError is a string-kinded reason domain whose constants are errors —
-// the shape goconf documents ("match it with errors.Is against the reason
+// the shape a consumer domain documents ("match it with errors.Is against the reason
 // constants"); gorefuse must deliver the matching mechanism.
 type confError string
 
