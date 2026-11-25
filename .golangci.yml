@@ -272,6 +272,7 @@ linters:
       - path: (load|load_bytes|options)\.go$
         linters:
           - forbidigo
+          - govet       # fieldalignment: settings is a one-call option bag whose field order follows the load pipeline, not GC-pointer packing
       # Mirrored from goconf: fieldalignment in the synthetic metadata-shape
       # comparison struct is not a correctness concern.
       - path: load_bytes_test\.go$
