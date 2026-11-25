@@ -260,6 +260,23 @@ linters:
         linters:
           - forbidigo
           - modernize
+      # defaults_contract_test.go's helper is generic over the concrete config
+      # type a test loads; a constraint cannot name a domain kind, so `any`
+      # is the only permissive spelling. The exclusion covers only that file.
+      - path: defaults_contract_test\.go$
+        linters:
+          - forbidigo
+          - modernize
+      # Mirrored from goconf: the sanctioned `any` lives in type-parameter
+      # constraint positions: Load[T any], LoadBytes[T any], WithDefaults[T any].
+      - path: (load|load_bytes|options)\.go$
+        linters:
+          - forbidigo
+      # Mirrored from goconf: fieldalignment in the synthetic metadata-shape
+      # comparison struct is not a correctness concern.
+      - path: load_bytes_test\.go$
+        linters:
+          - govet
       # policy/fixtures/* are intentionally rule-violating examples: the BPL
       # budget rules are supposed to fire on them. Excluding them from lint
       # keeps the gate clean without weakening it — a fixture that passes lint
