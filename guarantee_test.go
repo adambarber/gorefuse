@@ -12,12 +12,12 @@ import (
 func TestCrossDomainErrorsAsDistinct(t *testing.T) {
 	var chain error = Because[testReason]{What: Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, Reason: testRefused, Cause: nil}
 
-	if _, ok := errors.AsType[Because[otherReason]](chain); ok {
-		t.Fatal("errors.AsType matched a Because[testReason] as Because[otherReason]; the domains leaked")
+	if got, ok := errors.AsType[Because[otherReason]](chain); ok {
+		t.Fatalf("AsType matched a Because[testReason] as Because[otherReason]: %v", got)
 	}
 
-	if _, ok := errors.AsType[Because[testReason]](chain); !ok {
-		t.Fatal("errors.AsType failed to match its own domain")
+	if got, ok := errors.AsType[Because[testReason]](chain); !ok {
+		t.Fatalf("AsType failed to match its own domain: %v", got)
 	}
 }
 
