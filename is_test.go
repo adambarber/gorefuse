@@ -93,6 +93,20 @@ func TestIsCrossDomainNeverBridges(t *testing.T) {
 	assertNonErrorRefusesTarget(t, b)
 }
 
+// TestNonErrorReasonTypeIdentityViaAs pins the only matching path for a
+// non-error reason domain: errors.As on the carrier type, not errors.Is.
+func TestNonErrorReasonTypeIdentityViaAs(t *testing.T) {
+	chain := error(From(testRefused, nil))
+
+	if got, ok := errors.AsType[Because[testReason]](chain); !ok {
+		t.Fatalf("AsType failed to match the carrier's own domain: %v", got)
+	}
+
+	if got, ok := errors.AsType[Because[otherReason]](chain); ok {
+		t.Fatalf("AsType matched a Because[testReason] as Because[otherReason]: %v", got)
+	}
+}
+
 // TestIsAfterWrappingFrom pins that the real construction path (From) and an
 // errors.New-wrapped chain still answer Is through the carrier.
 func TestIsAfterWrappingFrom(t *testing.T) {

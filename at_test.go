@@ -48,16 +48,16 @@ func TestAtRefusesWhitespaceFile(t *testing.T) {
 	}, strconv.Quote(" "))
 }
 
-func TestAtRefusesTrailingDigitsFile(t *testing.T) {
-	assertRefusalPanics(t, `At accepted File "real.go:99"`, func() {
+func TestAtAcceptsTrailingDigitsFile(t *testing.T) {
+	assertNoPanic(t, "At panicked on a trailing-digits File", func() {
 		At("real.go:99", 3, testSubject, "")
-	}, strconv.Quote("real.go:99"))
+	})
 }
 
-func TestAtRefusesNewlineFile(t *testing.T) {
-	assertRefusalPanics(t, `At accepted File "a\nb"`, func() {
+func TestAtAcceptsNewlineFile(t *testing.T) {
+	assertNoPanic(t, "At panicked on a newline-bearing File", func() {
 		At("a\nb", 3, testSubject, "")
-	}, strconv.Quote("a\nb"))
+	})
 }
 
 func TestAtRefusesWhitespaceFileWithLine(t *testing.T) {
@@ -114,6 +114,11 @@ func TestFromForgedTrailingDigitsFileZeroLineStillPlaceholder(t *testing.T) {
 	}, misses: false})
 
 	assertRender(t, b, "Error: "+invalidFrame+": refused")
+}
+
+func TestEmptyFrameSkipsLine(t *testing.T) {
+	b := because(Refusal{File: "", Line: 7, Subject: testSubject, Why: "", Sensitive: 0}, testRefused, nil)
+	assertRender(t, b, renderText("Error: refused: "+string(testSubject)))
 }
 
 func TestFrameSkipsNegativeLine(t *testing.T) {

@@ -10,9 +10,9 @@ const (
 	testFix      = "Fix it."
 	testRendered = "refused"
 
-	// wantMultilineFrame pins the embedded-newline passthrough the scrub
-	// tests assert from both sides: raw rendering and post-scrub rendering.
-	wantMultilineFrame = "f.toml:3: line one\nline two"
+	// wantFlattenedFrame pins that a line break cannot create a second
+	// line-start verdict: the reason stays on one rendered line.
+	wantFlattenedFrame = "f.toml:3: line one line two"
 )
 
 // testContext is a named kind for the situation a panic assertion describes.

@@ -47,6 +47,27 @@ func TestESCEscapeNeutralized(t *testing.T) {
 	}
 }
 
+func TestLineBreaksFlattened(t *testing.T) {
+	cases := map[string]Because[testReason]{
+		"line feed in reason":       {What: testEmptyWhat("", ""), Reason: testReason("a\nb"), Cause: nil},
+		"line separator in subject": {What: testEmptyWhat("a\u2028b", ""), Reason: testRefused, Cause: nil},
+		"nul in why":                {What: testEmptyWhat("", "a\x00b"), Reason: testRefused, Cause: nil},
+	}
+	wants := map[string]string{
+		"line feed in reason":       "Error: a b",
+		"line separator in subject": "Error: refused: a b",
+		"nul in why":                "Error: refused. a b",
+	}
+
+	for name, b := range cases {
+		t.Run(name, func(t *testing.T) {
+			assertRender(t, b, renderText(wants[name]))
+
+			assertOneVerdict(t, renderText(b.Error()))
+		})
+	}
+}
+
 func TestBidiOverridePassesThrough(t *testing.T) {
 	assertRender(t, because(Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, testReason("dir\u202Ecru/"), nil),
 		"Error: dir\u202Ecru/")

@@ -16,12 +16,12 @@ var trailingDigits = regexp.MustCompile(`:[0-9]+$`)
 var trailingColon = regexp.MustCompile(`:$`)
 
 // invalidFrame is the placeholder the render path substitutes for a File that
-// would forge a file:line pairing (newline-bearing or trailing ":digits").
+// would forge a file:line pairing; it never appears as a real file name.
 const invalidFrame = "<invalid-frame>"
 
-// At builds a Refusal: the single construction path; Line 0 means the whole
-// file. At panics on a forged frame or unknown Sensitive bits (see the render
-// contract in error.go for the full panic list); File is stored trimmed.
+// At builds a Refusal; Line 0 means the whole file. Every File name is accepted
+// (ambiguous ones render invalidFrame); a negative Line, a Line without a File,
+// and unknown Sensitive bits panic as caller mistakes.
 func At(f File, line Line, subject Subject, why Why, marks ...Sensitive) Refusal {
 	if strings.TrimRightFunc(string(f), unicode.IsSpace) == "" && line != 0 {
 		panic("gorefuse: At refuses Line " + strconv.Itoa(int(line)) +
@@ -29,20 +29,6 @@ func At(f File, line Line, subject Subject, why Why, marks ...Sensitive) Refusal
 	}
 
 	file := strings.TrimSpace(string(f))
-	if strings.ContainsAny(file, "\n") {
-		panic("gorefuse: At refuses File " + strconv.Quote(file) +
-			"; File contains a newline, which would forge its file:line frame")
-	}
-
-	if trailingDigits.MatchString(file) {
-		panic("gorefuse: At refuses File " + strconv.Quote(file) +
-			"; trailing :digits would forge its file:line frame")
-	}
-
-	if trailingColon.MatchString(file) {
-		panic("gorefuse: At refuses File " + strconv.Quote(file) +
-			"; a colon-terminated File would render a dangling \":\" in its frame")
-	}
 
 	if line < 0 {
 		panic("gorefuse: At refuses negative Line " + strconv.Itoa(int(line)) +

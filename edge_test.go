@@ -12,10 +12,9 @@ func TestFromNilDescribable(t *testing.T) {
 	assertRender(t, From(testRefused, nil), "Error: "+testRendered)
 }
 
-// TestEmbeddedNewlinePassesThrough pins the newline contract once: raw and
-// scrubbed rendering take the same code path, so one assertion covers both
-// sides of the scrub boundary.
-func TestEmbeddedNewlinePassesThrough(t *testing.T) {
+// TestEmbeddedNewlineFlattensToOneVerdict pins the newline contract: a line
+// break becomes a space before rendering, so no slot can start a second verdict.
+func TestEmbeddedNewlineFlattensToOneVerdict(t *testing.T) {
 	assertRender(t, because(Refusal{File: "f.toml", Line: 3, Subject: "", Why: "", Sensitive: 0}, testReason("line one\nline two"), nil),
-		"Error: "+wantMultilineFrame)
+		"Error: "+wantFlattenedFrame)
 }

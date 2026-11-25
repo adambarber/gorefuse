@@ -22,7 +22,7 @@ func TestWhitespaceContract(t *testing.T) {
 		{"trailing space then why", "", refusedSpace, Why(testFix), "refused. " + testFix},
 		{"trailing tab then why", "", refusedTab, Why(testFix), "refused. " + testFix},
 		{"trailing newline then why", "", refusedNewline, Why(testFix), "refused. " + testFix},
-		{"embedded newline kept with why", "", "refused\nmore", Why(testFix), "refused\nmore. " + testFix},
+		{"embedded newline flattened with why", "", "refused\nmore", Why(testFix), "refused more. " + testFix},
 		{"whitespace-only reason degenerates", "", " ", Why(testFix), testFix},
 		{"why without terminal punctuation", "", testRendered, "no period", "refused. no period"},
 		{"frame with trailing slash", "/etc/f.toml/", testRendered, Why(testFix), "/etc/f.toml/: refused. " + testFix},

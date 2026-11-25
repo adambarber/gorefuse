@@ -6,6 +6,18 @@ import (
 	"testing"
 )
 
+func TestCauseSensitiveStillUnwraps(t *testing.T) {
+	b := because(Refusal{File: "", Subject: "", Why: "", Line: 0, Sensitive: CauseSensitive}, testRefused, errTestSentinel)
+
+	if !errors.Is(b, errTestSentinel) {
+		t.Fatal("errors.Is(CauseSensitive carrier, cause) = false, want true")
+	}
+
+	if got := b.Error(); strings.Contains(got, "root cause") {
+		t.Fatalf("Error() = %q, echoed the marked cause", got)
+	}
+}
+
 func TestMarkedSubjectRendersToken(t *testing.T) {
 	b := because(Refusal{File: testFile, Line: 0, Subject: testSubject, Why: "", Sensitive: 0}, testRefused, nil)
 	b.What.Sensitive = SubjectSensitive

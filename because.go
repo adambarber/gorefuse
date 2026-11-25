@@ -37,9 +37,9 @@ type Because[R any] struct {
 // Unwrap exposes the Cause to errors.Is and errors.As.
 func (b Because[R]) Unwrap() error { return b.Cause }
 
-// Is reports whether target is (or wraps) b.Reason, so errors.Is can switch
-// on the reason: R an error follows errors.Is semantics on the reason value,
-// R not an error matches by any-equality only; nil never bridges domains.
+// Is matches only an error reason: errors.Is on the reason value. A non-error R
+// carries no error identity — use errors.As on the carrier type to match its
+// domain; nil never bridges domains.
 func (b Because[R]) Is(target error) bool {
 	if target == nil {
 		return false
@@ -49,5 +49,5 @@ func (b Because[R]) Is(target error) bool {
 		return errors.Is(err, target)
 	}
 
-	return any(b.Reason) == any(target)
+	return false
 }

@@ -28,6 +28,13 @@ func TestEmptyBecauseRendersEmpty(t *testing.T) {
 	}
 }
 
+func TestNilErrorReasonRendersEmpty(t *testing.T) {
+	var reason error
+	if got := From(reason, nil).Error(); got != "" {
+		t.Fatalf("Error() = %q, want empty for a nil error reason", got)
+	}
+}
+
 func TestCauseTailAfterSentencePunctuation(t *testing.T) {
 	b := Because[testReason]{
 		What:   Refusal{File: "", Line: 0, Subject: "", Why: "Renew it.", Sensitive: 0},

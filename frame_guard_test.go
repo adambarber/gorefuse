@@ -5,26 +5,12 @@ import (
 	"testing"
 )
 
-// At refuses a File ending in a bare colon: the rendered frame would carry a
-// dangling separator ("a.go::7") that no documented frame shape blesses.
-func TestAtRefusesDanglingColonFile(t *testing.T) {
-	defer func() {
-		r := recover()
-		if r == nil {
-			t.Fatal("At accepted a colon-terminated File; want panic")
-		}
-
-		msg, ok := r.(string)
-		if !ok {
-			t.Fatalf("panic value is not a string: %v", r)
-		}
-
-		if !strings.Contains(msg, "a.go:") {
-			t.Fatalf("panic does not echo the offending File: %v", r)
-		}
-	}()
-
-	At(File("a.go:"), 7, Subject("s"), Why("w"))
+// At accepts a File ending in a bare colon; the render path substitutes the
+// invalid-frame placeholder for the dangling separator, never a panic.
+func TestAtAcceptsDanglingColonFile(t *testing.T) {
+	assertNoPanic(t, "At panicked on a colon-terminated File", func() {
+		At(File("a.go:"), 7, Subject("s"), Why("w"))
+	})
 }
 
 // A colon-terminated File is refused on every path: a hand-built Refusal with
