@@ -1,6 +1,7 @@
 package gorefuse
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 	"unicode/utf8"
@@ -43,17 +44,15 @@ func addFuzzSeeds(f *testing.F) {
 func assertFuzzRender(t *testing.T, file, reason, slot string, line int64, marks uint8) {
 	t.Helper()
 
-	for i, carrier := range fuzzCarriers(file, reason, slot, line, marks) {
+	for _, carrier := range fuzzCarriers(file, reason, slot, line, marks) {
 		first := carrier.Error()
 		second := carrier.Error()
 		assertRenderProps(t, first, second)
-
-		// At masks unknown bits before construction, so only the hand-built
-		// and From carriers exercise the fail-closed unknown-bit path.
-		if i < 2 {
-			assertSensitiveProps(t, first, slot, marks)
-		}
 	}
+
+	// At masks unknown bits before construction, so the fixed-reason
+	// carriers built here are the ones that exercise the fail-closed path.
+	assertSensitiveProps(t, slot, marks)
 }
 
 func fuzzCarriers(file, reason, slot string, line int64, marks uint8) []error {
@@ -105,16 +104,73 @@ func assertRenderProps(t *testing.T, first, second string) {
 	assertOneVerdict(t, renderText(first))
 }
 
+const sensitiveMarker = "\x02"
+
 // assertSensitiveProps fails when an unknown Sensitive bit lets a populated
 // slot render in the clear on a hand-built or From carrier.
-func assertSensitiveProps(t *testing.T, render, slot string, marks uint8) {
+func assertSensitiveProps(t *testing.T, slot string, marks uint8) {
 	t.Helper()
 
-	if Sensitive(marks)&^sensitiveMask == 0 || strings.TrimSpace(scrub(slot)) == "" {
-		return
+	const fixed = "fixed-reason"
+
+	what := Refusal{
+		File: File(fixed), Line: Line(1), Subject: Subject(sensitiveMarker + slot + sensitiveMarker),
+		Why: Why(fixed), Sensitive: Sensitive(marks),
 	}
 
+	carriers := []error{
+		Because[string]{Reason: fixed, What: what, Cause: confError(fixed)},
+		From(testReason(fixed), fuzzDescriber{refusal: what}),
+	}
+
+	for _, carrier := range carriers {
+		if failure := sensitiveProbeFailure(slot, marks, carrier); failure != "" {
+			t.Fatal(failure)
+		}
+	}
+}
+
+// sensitiveProbeFailure checks one carrier against the fail-closed oracle. A
+// fixed reason keeps a fuzz slot that reads [redacted] from satisfying the
+// token check by itself; the marker must disappear from the render too.
+func sensitiveProbeFailure(slot string, marks uint8, carrier error) string {
+	if Sensitive(marks)&^sensitiveMask == 0 || strings.TrimSpace(scrub(slot)) == "" {
+		return ""
+	}
+
+	render := carrier.Error()
 	if !strings.Contains(render, Redacted) {
-		t.Fatalf("Error() = %q, unknown Sensitive bits did not redact slot %q", render, slot)
+		return fmt.Sprintf("Error() = %q, unknown Sensitive bits did not redact slot %q", render, slot)
+	}
+
+	if strings.Contains(render, sensitiveMarker) {
+		return fmt.Sprintf("Error() = %q, raw slot survived redaction: %q", render, slot)
+	}
+
+	return ""
+}
+
+func TestSensitiveOracleRequiresRawSlotAbsent(t *testing.T) {
+	const slot = "raw-secret"
+
+	what := Refusal{
+		File: File("f.go"), Line: Line(1),
+		Subject: Subject(sensitiveMarker + slot + sensitiveMarker),
+		Why:     Why("fixed"), Sensitive: 0,
+	}
+
+	// The old oracle accepted this render because the reason alone carried
+	// the redaction token, even though the marked slot stayed in the clear.
+	leaky := Because[string]{Reason: Redacted, What: what, Cause: confError("fixed")}
+	if failure := sensitiveProbeFailure(slot, uint8(1<<7), leaky); failure == "" {
+		t.Fatal("oracle accepted a render with an unredacted slot")
+	}
+
+	marked := what
+	marked.Sensitive = sensitiveMask | Sensitive(1<<7)
+
+	redacted := Because[string]{Reason: "fixed", What: marked, Cause: confError("fixed")}
+	if failure := sensitiveProbeFailure(slot, uint8(1<<7), redacted); failure != "" {
+		t.Fatalf("oracle rejected a redacted render: %s", failure)
 	}
 }
