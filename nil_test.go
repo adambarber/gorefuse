@@ -47,6 +47,15 @@ func (d chanDescriber) Describe() (Refusal, bool) {
 	return (<-d).Describe()
 }
 
+type typedNilError struct{}
+
+func (r *typedNilError) Error() string { return "unreachable" }
+
+func TestTypedNilErrorReasonContributesNothing(t *testing.T) {
+	var reason *typedNilError
+	assertRender(t, because(testEmptyWhat(testSubject, ""), reason, nil), renderText("Error: "+string(testSubject)))
+}
+
 func TestFromNilDescribableKinds(t *testing.T) {
 	kinds := map[string]Describable{
 		"pointer": (*plainDescriber)(nil),

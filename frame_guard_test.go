@@ -41,17 +41,31 @@ func TestStoredFileEqualsRenderedModuloScrub(t *testing.T) {
 	}
 }
 
-// Hand-built Refusals with unknown Sensitive bits render the invalid-frame
-// placeholder: the render path is the backstop for every construction path,
-// so it refuses what At refuses.
-func TestHandBuiltUnknownBitsRenderPlaceholder(t *testing.T) {
+// Hand-built Refusals with unknown Sensitive bits fail closed on every path:
+// the frame becomes invalidFrame, marked slots are redacted, and the cause is
+// suppressed even when no File was supplied.
+func TestHandBuiltUnknownBitsFailClosed(t *testing.T) {
 	b := Because[string]{
 		Reason: "r",
-		Cause:  nil,
-		What:   Refusal{File: File("f"), Subject: Subject("s"), Why: Why(""), Line: 1, Sensitive: 0xF8},
+		Cause:  confError("cause-secret"),
+		What:   Refusal{File: File("f"), Subject: Subject("subject-secret"), Why: Why("why-secret"), Line: 1, Sensitive: 0xF8},
 	}
 
-	if got := b.Error(); !strings.Contains(got, invalidFrame) {
-		t.Fatalf("render = %q, want the invalid-frame placeholder", got)
+	want := "Error: " + invalidFrame + ": r: " + Redacted + ". " + Redacted
+	if got := b.Error(); got != want {
+		t.Fatalf("render = %q, want %q", got, want)
+	}
+}
+
+func TestHandBuiltUnknownBitsWithoutFileFailClosed(t *testing.T) {
+	b := Because[string]{
+		Reason: "r",
+		Cause:  confError("cause-secret"),
+		What:   Refusal{File: "", Subject: "subject-secret", Why: "why-secret", Line: 0, Sensitive: 0x80},
+	}
+
+	want := "Error: " + invalidFrame + ": r: " + Redacted + ". " + Redacted
+	if got := b.Error(); got != want {
+		t.Fatalf("render = %q, want %q", got, want)
 	}
 }

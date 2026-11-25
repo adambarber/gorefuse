@@ -71,8 +71,7 @@ func assertNonErrorRefusesTarget(t *testing.T, b Because[testReason]) {
 }
 
 func TestIsNonErrorReasonNeverMatches(t *testing.T) {
-	// A non-error R cannot equal an error target: the dynamic types differ,
-	// so the any-equality is false and never panics.
+	// A non-error R carries no error identity: Is returns false, never panics.
 	assertNonErrorRefusesTarget(t, From(testRefused, nil))
 }
 

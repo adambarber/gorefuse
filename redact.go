@@ -27,21 +27,29 @@ const (
 // sensitiveMask is the set of valid Sensitive bits; At refuses anything else.
 const sensitiveMask = SubjectSensitive | WhySensitive | CauseSensitive
 
-// markedSensitive renders a slot the redaction stage produces: the token
-// when marked, the text otherwise. An empty slot stays empty — redaction
-// never fabricates a contribution.
-func markedSensitive(text Subject, mark, marks Sensitive) Subject {
-	return markedSensitiveWhy(Why(text), mark, marks).toSubject()
-}
+// slotText is one rendered slot's text after domain conversion.
+type slotText string
 
-// markedSensitiveWhy is the redaction stage for the Why slot.
-func markedSensitiveWhy(text Why, mark, marks Sensitive) Why {
-	if strings.TrimSpace(string(text)) == "" || marks&mark == 0 {
-		return text
+// unknownSensitive reports whether m carries bits no construction path owns.
+func unknownSensitive(m Sensitive) bool { return m&^sensitiveMask != 0 }
+
+// renderSlot scrubs and trims a slot, then redacts it when marked. Redacting
+// after scrubbing keeps a NUL-only slot empty instead of fabricating a token.
+func renderSlot(text slotText, mark, marks Sensitive) slotText {
+	clean := slotText(strings.TrimSpace(scrub(string(text))))
+	if clean == "" || marks&mark == 0 {
+		return clean
 	}
 
-	return Why(Redacted)
+	return slotText(Redacted)
 }
 
-// toSubject spells a redacted Why back in the Subject domain kind.
-func (w Why) toSubject() Subject { return Subject(w) }
+// normalize fails closed on unknown bits on every construction path: the frame
+// becomes invalidFrame, all three slots are marked, and the cause is suppressed.
+func (r Refusal) normalize() Refusal {
+	if !unknownSensitive(r.Sensitive) {
+		return r
+	}
+
+	return Refusal{File: invalidFrame, Subject: r.Subject, Why: r.Why, Line: 0, Sensitive: sensitiveMask}
+}

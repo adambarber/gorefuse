@@ -54,7 +54,7 @@ The reason type is the identity: two libraries' reasons are two incompatible typ
 - `errors.Is(err, Denied)` switches on the reason; `errors.As(err, &because)` extracts the carrier when you need its frame.
 - `At(file, line, subject, why)` is the one construction path that keeps the frame well formed.
 - `Describable` and `From[R]` let another package describe what it refused while you supply the reason.
-- `gorefuse.Sensitive` marks slots that hold classified content; marked slots render as `[redacted]`.
+- `gorefuse.Sensitive` marks the Subject, Why and Cause slots; marked slots render as `[redacted]` or nothing. `File` is never redacted — keep secrets out of it.
 - `Error()` is byte-stable and fuzz-pinned: valid UTF-8, one line, one line-start verdict.
 
 ## Why
@@ -65,7 +65,7 @@ gorefuse is a small, opinionated answer: a refusal has a where (`File`, `Line`),
 
 ## The render contract
 
-Render order is fixed: **verdict label → frame → reason → subject → cause tail → fix sentence**. Every slot — reason, subject, cause, `File`, `Why` — is trimmed once, and an empty slot contributes nothing and no connector.
+Render order is fixed: **verdict label → frame → reason → subject → cause tail → fix sentence**. Every slot — reason, subject, cause, `File`, `Why` — is scrubbed and then trimmed; an empty-after-scrub slot contributes nothing and no connector.
 
 - **One verdict per line.** Every non-empty render starts with `Error: `. Invalid UTF-8 and the ESC byte become U+FFFD; `\r`, `\n`, `\v`, `\f`, NUL, U+2028 and U+2029 become spaces. A hostile slot cannot forge a second line-start verdict. Bidi overrides pass through deliberately — they are valid Unicode and a display concern, not a refusal-library concern.
 - **Grep-able frame.** `At` accepts every `File` name; a name that would forge a `file:line` pairing renders as `<invalid-frame>` with no line, so even a hand-built `Refusal` cannot smuggle a false frame through. A non-positive line never pairs.
@@ -83,13 +83,13 @@ fmt.Println(err)
 ```
 
 - **`At` panics only on caller mistakes.** Three conditions: a negative `Line`, a `Line` without a `File`, and unknown `Sensitive` bits. Hostile file names are data, not programmer errors. A `File` ending in `:` followed by non-ASCII digits is prose by contract; only ASCII `:digits` is the pairing grammar.
-- **Marked-sensitive slots render as `[redacted]`.** The caller classifies what is sensitive; gorefuse guarantees the marked case. A marked `Cause` renders nothing, because a tail has no single-token form. The token itself is never scrubbed. `Reason` is never redacted — it is of arbitrary caller type `R` — so keep secrets out of it.
+- **Marked-sensitive slots render as `[redacted]`.** The caller classifies what is sensitive; gorefuse guarantees the marked case. A marked `Cause` renders nothing, because a tail has no single-token form. The token itself is never scrubbed. `Reason` and `File` are never redacted, so keep secrets out of them. Unknown `Sensitive` bits fail closed on every path: the frame becomes `<invalid-frame>` and all redactable slots are marked.
 - **The `[redacted]` token is not authenticated.** Unmarked text that happens to contain `[redacted]` renders identically. Redaction is a rendering decision, not a cryptographic guarantee.
 - **Reason identity, not reason words.** `Unwrap` exposes the `Cause` to `errors.Is` and `errors.As`. `Is` matches only an error-kinded reason, following `errors.Is` on the reason value; a non-error reason domain is matched with `errors.As` on the carrier type. A nil target never matches, and `Because[OtherReason]` never bridges domains.
 - **The zero value is an empty error.** The zero `Because[R]` for a string-kinded reason renders `""` and is still a non-nil `error`, because the reason type is the identity, not the words.
 - **A nested `Because` keeps its own label.** `Because{Cause: innerBecause}` renders two `Error:` labels, but only the outer one sits at line start, so line-start grep still sees one verdict per render.
 - **Compile-time wall.** `errors.As` never matches `Because[OtherReason]` against `Because[Reason]`; a tag-gated build test fails if two domains could collapse.
-- **Fuzz-pinned.** The fuzz target builds hand-built, `From`, and `At` carriers from arbitrary bytes and asserts each render is valid UTF-8, idempotent, free of unscrubbed ESC bytes and line breaks, and has one line-start verdict.
+- **Fuzz-pinned.** The fuzz target builds hand-built, `From`, and `At` carriers from arbitrary bytes and asserts each render is valid UTF-8, idempotent, free of unscrubbed ESC bytes and line breaks, has one line-start verdict, has no trailing connector, and redacts populated slots when unknown `Sensitive` bits are set.
 
 ## Error and failure contract
 

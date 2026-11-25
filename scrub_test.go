@@ -16,7 +16,7 @@ func TestCarriageReturnNeutralized(t *testing.T) {
 	wants := map[string]string{
 		"CR in subject": "refused: a b",
 		"CR in why":     "refused. Fix it. Soon.",
-		"CR in file":    "a b.go:3: refused",
+		"CR in file":    invalidFrame + ": refused",
 		"CR in reason":  "re fused",
 	}
 

@@ -13,6 +13,16 @@ func (f fuzzDescriber) Describe() (Refusal, bool) { return f.refusal, true }
 // FuzzError pins the render-path guarantees against arbitrary slot content.
 // Every carrier is built from the fuzz inputs; no input is filtered out.
 func FuzzError(f *testing.F) {
+	addFuzzSeeds(f)
+
+	f.Fuzz(func(t *testing.T, file, reason, slot string, line int64, marks uint8) {
+		assertFuzzRender(t, file, reason, slot, line, marks)
+	})
+}
+
+func addFuzzSeeds(f *testing.F) {
+	f.Helper()
+
 	seeds := []string{
 		"", " ", "\t", "\n", "\r", "\r\n", "\x1b", "\x1b[31m", "\uFFFD",
 		"\u2028", "\u2029", "\x00", "[redacted]", "[REDACTED]", "Error: ",
@@ -28,32 +38,46 @@ func FuzzError(f *testing.F) {
 			f.Add(s, t, s, int64(len(s))+int64(len(t)), uint8(3))
 		}
 	}
+}
 
-	f.Fuzz(func(t *testing.T, file, reason, slot string, line int64, marks uint8) {
-		what := Refusal{
-			File: File(file), Line: Line(line), Subject: Subject(slot),
-			Why: Why(slot), Sensitive: Sensitive(marks) & sensitiveMask,
-		}
-		carriers := []error{
-			Because[string]{Reason: reason, What: what, Cause: confError(slot)},
-			From(testReason(reason), fuzzDescriber{refusal: what}),
-		}
-		// At rejects only a whitespace-only File paired with a positive Line;
-		// that is a documented construction rule, not a render property. Every
-		// other file name, including ambiguous ones, goes through At here.
-		if strings.TrimSpace(file) != "" && line >= 0 {
-			carriers = append(carriers, Because[testReason]{
-				Reason: testRefused, Cause: nil,
-				What: At(File(file), Line(line), Subject(slot), Why(slot), Sensitive(marks)&sensitiveMask),
-			})
-		}
+func assertFuzzRender(t *testing.T, file, reason, slot string, line int64, marks uint8) {
+	t.Helper()
 
-		for _, carrier := range carriers {
-			first := carrier.Error()
-			second := carrier.Error()
-			assertRenderProps(t, first, second)
+	for i, carrier := range fuzzCarriers(file, reason, slot, line, marks) {
+		first := carrier.Error()
+		second := carrier.Error()
+		assertRenderProps(t, first, second)
+
+		// At masks unknown bits before construction, so only the hand-built
+		// and From carriers exercise the fail-closed unknown-bit path.
+		if i < 2 {
+			assertSensitiveProps(t, first, slot, marks)
 		}
-	})
+	}
+}
+
+func fuzzCarriers(file, reason, slot string, line int64, marks uint8) []error {
+	what := Refusal{
+		File: File(file), Line: Line(line), Subject: Subject(slot),
+		Why: Why(slot), Sensitive: Sensitive(marks),
+	}
+
+	carriers := []error{
+		Because[string]{Reason: reason, What: what, Cause: confError(slot)},
+		From(testReason(reason), fuzzDescriber{refusal: what}),
+	}
+
+	// At rejects only a whitespace-only File paired with a positive Line;
+	// that is a documented construction rule, not a render property. Every
+	// other file name, including ambiguous ones, goes through At here.
+	if strings.TrimSpace(file) != "" && line >= 0 {
+		carriers = append(carriers, Because[testReason]{
+			Reason: testRefused, Cause: nil,
+			What: At(File(file), Line(line), Subject(slot), Why(slot), Sensitive(marks)&sensitiveMask),
+		})
+	}
+
+	return carriers
 }
 
 // assertRenderProps fails unless the render holds the pinned properties:
@@ -74,5 +98,23 @@ func assertRenderProps(t *testing.T, first, second string) {
 		t.Fatalf("Error() = %q, carries an unscrubbed ESC byte", first)
 	}
 
+	if strings.HasSuffix(first, " ") {
+		t.Fatalf("Error() = %q, has a dangling connector or trailing space", first)
+	}
+
 	assertOneVerdict(t, renderText(first))
+}
+
+// assertSensitiveProps fails when an unknown Sensitive bit lets a populated
+// slot render in the clear on a hand-built or From carrier.
+func assertSensitiveProps(t *testing.T, render, slot string, marks uint8) {
+	t.Helper()
+
+	if Sensitive(marks)&^sensitiveMask == 0 || strings.TrimSpace(scrub(slot)) == "" {
+		return
+	}
+
+	if !strings.Contains(render, Redacted) {
+		t.Fatalf("Error() = %q, unknown Sensitive bits did not redact slot %q", render, slot)
+	}
 }

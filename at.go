@@ -38,7 +38,7 @@ func At(f File, line Line, subject Subject, why Why, marks ...Sensitive) Refusal
 	sensitive := Sensitive(0)
 
 	for _, m := range marks {
-		if m&^sensitiveMask != 0 {
+		if unknownSensitive(m) {
 			panic("gorefuse: At refuses Sensitive marks " + strconv.Itoa(int(m)) +
 				"; unknown bits outside SubjectSensitive|WhySensitive|CauseSensitive")
 		}

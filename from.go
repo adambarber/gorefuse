@@ -1,8 +1,6 @@
 package gorefuse
 
-import (
-	"reflect"
-)
+import "reflect"
 
 // From builds a Because[R] from whatever the describable can say. Top-level
 // nils (untyped, or typed nil of pointer/map/slice/func/chan kind) resolve to
@@ -21,18 +19,20 @@ func From[R any](reason R, d Describable) Because[R] {
 	return b
 }
 
-// isNilDescribable reports whether the describable holds nothing to call: the
-// interface itself nil, or a nil pointer/map/slice/func/chan inside it. The
-// exhaustive arm stays total for future reflect kinds, where UnsafePointer is unreachable and false.
-func isNilDescribable(d Describable) bool {
-	if d == nil {
+// isNilDescribable reports whether the describable holds nothing to call.
+func isNilDescribable(d Describable) bool { return d == nil || isNilValue(d) }
+
+// isNilValue reports whether v is a nil-able kind holding nil. The exhaustive
+// arm stays total for future reflect kinds, where UnsafePointer is false.
+func isNilValue[T any](v T) bool {
+	rv := reflect.ValueOf(v)
+	if !rv.IsValid() {
 		return true
 	}
 
-	v := reflect.ValueOf(d)
-	switch v.Kind() {
+	switch rv.Kind() {
 	case reflect.Pointer, reflect.Map, reflect.Slice, reflect.Func, reflect.Chan:
-		return v.IsNil()
+		return rv.IsNil()
 	case reflect.Invalid, reflect.Bool, reflect.Int, reflect.Int8, reflect.Int16,
 		reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16,
 		reflect.Uint32, reflect.Uint64, reflect.Uintptr, reflect.Float32, reflect.Float64,
@@ -40,6 +40,6 @@ func isNilDescribable(d Describable) bool {
 		reflect.Interface, reflect.String, reflect.Struct, reflect.UnsafePointer:
 		return false
 	default:
-		return false // defensive: future reflect kinds contribute nothing to call
+		return false
 	}
 }
