@@ -116,7 +116,7 @@ A structured, machine-readable form is the first item. It must derive from the s
 
 ## Status
 
-Pre-1.0. `v0.1.1` added the `Error:` verdict label at the head of every non-empty render. The untagged commit `96cc429` then flattened every line break to a space, made `At` total on file names, and narrowed `Is` to error-kinded reasons. Exact-byte pins were updated in the same commits; the render is byte-stable since `96cc429`.
+Pre-1.0. `v0.1.1` added the `Error:` verdict label at the head of every non-empty render. `v0.2.0` flattens every line break to a space, makes `At` total on file names, and narrows `Is` to error-kinded reasons. Exact-byte pins were updated in the same commits; the render is byte-stable as of `v0.2.0`.
 
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/adambarber/gorefuse)](https://pkg.go.dev/github.com/adambarber/gorefuse)
 
