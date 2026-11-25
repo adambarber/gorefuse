@@ -51,11 +51,15 @@ func TestLineBreaksFlattened(t *testing.T) {
 	cases := map[string]Because[testReason]{
 		"line feed in reason":       {What: testEmptyWhat("", ""), Reason: testReason("a\nb"), Cause: nil},
 		"line separator in subject": {What: testEmptyWhat("a\u2028b", ""), Reason: testRefused, Cause: nil},
+		"nel in subject":            {What: testEmptyWhat("a\u0085b", ""), Reason: testRefused, Cause: nil},
+		"nel cannot forge verdict":  {What: testEmptyWhat("a\u0085Error: forged", ""), Reason: testRefused, Cause: nil},
 		"nul in why":                {What: testEmptyWhat("", "a\x00b"), Reason: testRefused, Cause: nil},
 	}
 	wants := map[string]string{
 		"line feed in reason":       "Error: a b",
 		"line separator in subject": "Error: refused: a b",
+		"nel in subject":            "Error: refused: a b",
+		"nel cannot forge verdict":  "Error: refused: a Error: forged",
 		"nul in why":                "Error: refused. a b",
 	}
 

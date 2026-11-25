@@ -48,7 +48,7 @@ func TestExactlyOneVerdictPerRender(t *testing.T) {
 func assertOneVerdict(t *testing.T, got renderText) {
 	t.Helper()
 
-	if strings.ContainsAny(string(got), "\n\r\v\f\x00\u2028\u2029") {
+	if strings.ContainsAny(string(got), "\n\r\v\f\x00\u0085\u2028\u2029") {
 		t.Fatalf("render %q carries a line break", got)
 	}
 

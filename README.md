@@ -67,7 +67,7 @@ gorefuse is a small, opinionated answer: a refusal has a where (`File`, `Line`),
 
 Render order is fixed: **verdict label → frame → reason → subject → cause tail → fix sentence**. Every slot — reason, subject, cause, `File`, `Why` — is scrubbed and then trimmed; an empty-after-scrub slot contributes nothing and no connector.
 
-- **One verdict per line.** Every non-empty render starts with `Error: `. Invalid UTF-8 and the ESC byte become U+FFFD; `\r`, `\n`, `\v`, `\f`, NUL, U+2028 and U+2029 become spaces. A hostile slot cannot forge a second line-start verdict. Bidi overrides pass through deliberately — they are valid Unicode and a display concern, not a refusal-library concern.
+- **One verdict per line.** Every non-empty render starts with `Error: `. Invalid UTF-8 and the ESC byte become U+FFFD; `\r`, `\n`, `\v`, `\f`, NUL, U+0085, U+2028 and U+2029 become spaces. A hostile slot cannot forge a second line-start verdict. Bidi overrides pass through deliberately — they are valid Unicode and a display concern, not a refusal-library concern.
 - **Grep-able frame.** `At` accepts every `File` name; a name that would forge a `file:line` pairing renders as `<invalid-frame>` with no line, so even a hand-built `Refusal` cannot smuggle a false frame through. A non-positive line never pairs.
 
 ```go

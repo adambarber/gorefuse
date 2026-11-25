@@ -60,6 +60,12 @@ func TestAtAcceptsNewlineFile(t *testing.T) {
 	})
 }
 
+func TestAtAcceptsNonASCIIDigitSuffixFile(t *testing.T) {
+	what := At("a:１２", 7, testSubject, "")
+	assertRender(t, Because[testReason]{Reason: testRefused, What: what, Cause: nil},
+		renderText("Error: a:１２:7: refused: "+string(testSubject)))
+}
+
 func TestAtRefusesWhitespaceFileWithLine(t *testing.T) {
 	assertRefusalPanics(t, "At accepted a whitespace-only File with a Line", func() {
 		At("  ", 2, testSubject, "")

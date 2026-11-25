@@ -9,7 +9,7 @@ import (
 // Error renders one verdict per line: label, frame, reason, subject, cause,
 // fix. Empty-after-scrub slots contribute nothing. Scrub makes the output valid
 // UTF-8, replaces ESC and invalid bytes with U+FFFD, and flattens every line
-// break (including U+2028/U+2029 and NUL) to a space so no slot can forge a
+// break (including U+0085, U+2028/U+2029 and NUL) to a space so no slot can forge a
 // second line-start verdict. Marked slots render as [redacted] (CauseSensitive
 // contributes nothing); bidi overrides pass through as valid Unicode.
 func (b Because[R]) Error() string {
@@ -57,7 +57,7 @@ func scrub(s string) string {
 
 	return strings.Map(func(r rune) rune {
 		switch r {
-		case '\r', '\n', '\v', '\f', 0, '\u2028', '\u2029':
+		case '\r', '\n', '\v', '\f', 0, '\u0085', '\u2028', '\u2029':
 			return ' '
 		default:
 			return r

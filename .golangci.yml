@@ -230,9 +230,6 @@ linters:
 
   exclusions:
     generated: strict
-    # Mirrored exclusions stay symmetric across goconf and gorefuse. A path
-    # absent in one repo is intentional; removing it would let the two lint
-    # gates drift, which is the failure this symmetry is meant to prevent.
     # Because is the settled public name of the generic refusal carrier;
     # renaming to BecauseError would break the design. This exclusion covers
     # only the file that declares it.

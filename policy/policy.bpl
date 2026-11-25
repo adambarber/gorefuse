@@ -9,7 +9,7 @@ ignore positiveFixtures {
 }
 
 ignore errorInterface {
-    paths  = ["error.go", "because_test.go", "tail_test.go", "ws_test.go", "cause_test.go", "nil_test.go", "at_test.go", "is_test.go", "fuzz_test.go"]
+    paths  = ["error.go", "because_test.go", "tail_test.go", "ws_test.go", "cause_test.go", "nil_test.go", "at_test.go", "is_test.go", "fuzz_test.go", "panic_contract_test.go"]
     reason = "the stdlib error and fmt.Stringer interfaces, and testing's t.Run table names and string wants, are declared with bare string positions; the interfaces and the test harness are the stdlib's spelling, so the named-kind rule cannot apply to the method set that satisfies them. fuzz_test.go joins for the same reason: testing.F.Fuzz accepts only the fixed primitive list, so the fuzz body's string slots are the stdlib's spelling too"
     owner  = "platform"
 }
@@ -31,8 +31,8 @@ rule comment_budget {
     type    = budget
     unit    = comment_lines
     max     = 3
-    why     = "a comment longer than three lines is documentation wearing a comment's clothes, and the place for it is docs/, where it gets an index"
-    fix     = "compress it, or make it a document in docs/ where it gets an index"
+    why     = "a comment longer than three lines is documentation wearing a comment's clothes, and the place for it is README.md"
+    fix     = "compress it, or make it a section in README.md where it gets an index"
     owner   = "platform"
     positive = { file = "policy/fixtures/comment_budget_positive/fixture.go", expects = finding(rule: "comment_budget", marker: "4 lines of prose, over the 3 allowed"), count = 1 }
     negative = { file = "policy/fixtures/comment_budget_negative/fixture.go", expects = no_finding }
