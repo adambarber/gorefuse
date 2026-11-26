@@ -119,7 +119,9 @@ To prove how a value was classified, match the carrier with `errors.As` and insp
 
 Pre-1.0. Unreleased on `main`; the next tag will be `v0.2.0` and the last tag is `v0.1.1`. The pending release moves the verdict label from `Error()` to `Verdict()`, flattens every line break, makes `At` total on file names, and narrows `Is` to error-kinded reasons. Exact-byte pins were updated in the same commits.
 
-[![PkgGoDev](https://pkg.go.dev/badge/github.com/adambarber/gorefuse)](https://pkg.go.dev/github.com/adambarber/gorefuse) [![codecov](https://codecov.io/gh/adambarber/gorefuse/branch/main/graph/badge.svg)](https://app.codecov.io/gh/adambarber/gorefuse)
+[![PkgGoDev](https://pkg.go.dev/badge/github.com/adambarber/gorefuse)](https://pkg.go.dev/github.com/adambarber/gorefuse) [![Release](https://img.shields.io/github/release/adambarber/gorefuse.svg?color=%23007ec6)](https://github.com/adambarber/gorefuse/releases/latest) [![test](https://github.com/adambarber/gorefuse/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/adambarber/gorefuse/actions/workflows/test.yml) [![lint](https://github.com/adambarber/gorefuse/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/adambarber/gorefuse/actions/workflows/lint.yml) [![coverage](https://raw.githubusercontent.com/adambarber/gorefuse/badges/.badges/main/coverage.svg)](.testcoverage.yml)
+
+The coverage badge is written by CI to the `badges` branch; it appears after that branch exists on the remote and the first `main` run completes.
 
 ## License
 
