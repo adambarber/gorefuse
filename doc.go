@@ -1,4 +1,4 @@
-// Package gorefuse provides a typed refusal vocabulary for Go: one way to
-// say why a thing was refused; Because[R] carries one and answers errors.Is
-// against an error-kinded reason; At builds one; Describable says what a domain refused.
+// Package gorefuse provides typed, byte-stable refusals as errors: a reason
+// type for identity, a file:line frame, and one fixed render for logs.
+// Because[R] carries the refusal; At builds its frame; From adapts a describer.
 package gorefuse
