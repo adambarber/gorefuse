@@ -32,10 +32,10 @@ func TestExactlyOneVerdictPerRender(t *testing.T) {
 
 	for name, b := range cases {
 		t.Run(name, func(t *testing.T) {
-			got := b.Error()
+			got := b.Verdict()
 
 			if got != string(wants[name]) {
-				t.Fatalf("Error() = %q, want %q", got, wants[name])
+				t.Fatalf("Verdict() = %q, want %q", got, wants[name])
 			}
 
 			assertOneVerdict(t, renderText(got))

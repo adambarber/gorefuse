@@ -16,7 +16,7 @@ const errLine gorefuse.Line = 42
 func (r reasonError) Error() string { return string(r) }
 
 func main() {
-	err := gorefuse.Because[reasonError]{
+	b := gorefuse.Because[reasonError]{
 		Reason: errDenied,
 		What: gorefuse.At("server.go", errLine,
 			gorefuse.Subject("token hunter2"),
@@ -26,5 +26,5 @@ func main() {
 		Cause: nil,
 	}
 
-	fmt.Println(err)
+	fmt.Println(b.Verdict())
 }

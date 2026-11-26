@@ -31,26 +31,27 @@ const Denied Reason = "denied"
 func (r Reason) Error() string { return string(r) }
 
 func main() {
-	var err error = gorefuse.Because[Reason]{
+	b := gorefuse.Because[Reason]{
 		Reason: Denied,
 		What: gorefuse.At("server.go", 42,
 			gorefuse.Subject("listen :8080"),
 			gorefuse.Why("bind the port before serving")),
 	}
 
-	fmt.Println(err)
-	fmt.Println(errors.Is(fmt.Errorf("starting server: %w", err), Denied))
+	fmt.Println(b.Verdict())
+	fmt.Println(errors.Is(fmt.Errorf("starting server: %w", b), Denied))
 }
 // Output:
 // Error: server.go:42: denied: listen :8080. bind the port before serving
 // true
 ```
 
-The reason type is the identity: two libraries' reasons are two incompatible types, and `errors.Is` matches through `Because` and ordinary wrapping when the reason is an error.
+The reason type is the identity: two libraries' reasons are two incompatible types, and `errors.Is` matches through `Because` and ordinary wrapping when the reason is an error. `Error()` is the unlabelled, composable content; `Verdict()` adds the `Error:` label for log emission.
 
 ## At a glance
 
 - Use `Because[R]` when a refusal needs a domain-owned identity that a caller can switch on.
+- Use `Error()` for composable prose and `Verdict()` when emitting a single labelled log line.
 - Use `errors.Is` against an error-kinded reason; use `errors.As` on the carrier when you need the frame or a non-error reason domain.
 - Use `At(file, line, subject, why)` to build the frame; it is the one constructor that keeps it well formed.
 - Use `Describable` and `From[R]` when the domain says what it refused and the caller supplies the reason.
@@ -67,7 +68,7 @@ gorefuse is a small, opinionated answer: a refusal has a where (`File`, `Line`),
 
 Render order is fixed: **verdict label → frame → reason → subject → cause tail → fix sentence**. Every slot is scrubbed and then trimmed; an empty-after-scrub slot contributes nothing and no connector.
 
-- **One verdict at line start.** Invalid UTF-8 and ESC become U+FFFD; `\r`, `\n`, `\v`, `\f`, NUL, U+0085, U+2028 and U+2029 become spaces. A hostile slot cannot forge a second line-start `Error:`.
+- **One verdict at line start in `Verdict()`.** `Error()` carries the same bytes without the label, so wrapping reads `starting server: server.go:42: ...`. Invalid UTF-8 and ESC become U+FFFD; `\r`, `\n`, `\v`, `\f`, NUL, U+0085, U+2028 and U+2029 become spaces. A hostile slot cannot forge a second line-start `Error:`.
 - **Grep-able frame.** `At` accepts every file name; a name that would forge a `file:line` pairing renders as `<invalid-frame>` with no line. A non-positive line never pairs. A `File` ending in `:` followed by non-ASCII digits is prose by contract; only ASCII `:digits` is the pairing grammar.
 - **Marked slots are redacted.** A marked `Subject` or `Why` renders as `[redacted]`; a marked `Cause` renders nothing. Marked cause slots still unwrap. Unknown sensitive bits fail closed on every construction path.
 - **Reason identity, not reason words.** `Is` matches only an error-kinded reason; a non-error reason domain is matched with `errors.As` on the carrier. A nil target never matches and another reason type never bridges domains.
@@ -80,6 +81,22 @@ Render order is fixed: **verdict label → frame → reason → subject → caus
 - `Describe` must not panic; `From` does not recover.
 - A `Cause` whose `Error()` panics is the caller's defect; gorefuse does not recover.
 - `At` panics only on caller mistakes: negative line, line without a file, or unknown sensitive bits. Hostile file names are data.
+
+## What redaction does and does not do
+
+`Sensitive` is a classification **you** supply. A marked `Subject` or `Why` renders as `[redacted]`; a marked `Cause` renders nothing but still unwraps. The token is a stable rendering marker, not an authenticated seal: unmarked text that literally contains `[redacted]` renders identically.
+
+```go
+b := gorefuse.Because[Reason]{
+	Reason: Denied,
+	What:   gorefuse.At("server.go", 42, "[redacted]", ""),
+}
+fmt.Println(b.Verdict())
+// Output:
+// Error: server.go:42: denied: [redacted]
+```
+
+To prove how a value was classified, match the carrier with `errors.As` and inspect `What.Sensitive`; the string alone cannot tell you. The planned structured form will carry per-part sensitivity as a typed attribute, from which both prose and future formats derive.
 
 ## Comparison
 
@@ -100,7 +117,7 @@ Render order is fixed: **verdict label → frame → reason → subject → caus
 
 ## Status
 
-Pre-1.0. Unreleased on `main`; the next tag will be `v0.2.0` and the last tag is `v0.1.1`. The pending release changes render bytes: every line break is flattened, `At` is total on file names, and `Is` narrows to error-kinded reasons. Exact-byte pins were updated in the same commits.
+Pre-1.0. Unreleased on `main`; the next tag will be `v0.2.0` and the last tag is `v0.1.1`. The pending release moves the verdict label from `Error()` to `Verdict()`, flattens every line break, makes `At` total on file names, and narrows `Is` to error-kinded reasons. Exact-byte pins were updated in the same commits.
 
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/adambarber/gorefuse)](https://pkg.go.dev/github.com/adambarber/gorefuse)
 

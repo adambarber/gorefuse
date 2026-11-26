@@ -60,7 +60,7 @@ func TestPublicPathwayCause(t *testing.T) {
 // TestPublicPathwayHostileData keeps one verdict under forged input.
 func TestPublicPathwayHostileData(t *testing.T) {
 	b := because(At("backup:2024", 1, "a\u0085Error: forged", ""), testRefused, nil)
-	rendered := b.Error()
+	rendered := b.Verdict()
 
 	if strings.ContainsRune(rendered, '\u0085') || !strings.HasPrefix(rendered, "Error: ") || strings.Contains(rendered, "\nError: ") {
 		t.Fatalf("rendered = %q, want one line-start verdict and no NEL", rendered)

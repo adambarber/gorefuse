@@ -55,9 +55,9 @@ func TestCauseTailNoDoublePunctuation(t *testing.T) {
 		Cause:  nil,
 	}
 
-	got := b.Error()
+	got := b.Verdict()
 	if got != "Error: refused: server.tls! Rename it." {
-		t.Fatalf("Error() = %q, want single punctuation before the fix", got)
+		t.Fatalf("Verdict() = %q, want single punctuation before the fix", got)
 	}
 }
 
@@ -66,7 +66,7 @@ func TestDescribableInterfaceSatisfied(t *testing.T) {
 
 	b := From(testRefused, d)
 
-	if b.Error() != wantFrameSubject {
-		t.Fatalf("Error() = %q, want %q", b.Error(), wantFrameSubject)
+	if b.Verdict() != wantFrameSubject {
+		t.Fatalf("Verdict() = %q, want %q", b.Verdict(), wantFrameSubject)
 	}
 }

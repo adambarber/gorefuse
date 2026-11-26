@@ -67,7 +67,7 @@ func TestLineBreaksFlattened(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			assertRender(t, b, renderText(wants[name]))
 
-			assertOneVerdict(t, renderText(b.Error()))
+			assertOneVerdict(t, renderText(b.Verdict()))
 		})
 	}
 }

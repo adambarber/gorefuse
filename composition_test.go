@@ -30,10 +30,10 @@ func TestCompositionFrameCarriesPathLine(t *testing.T) {
 		misses: false,
 	})
 
-	got := b.Error()
+	got := b.Verdict()
 	want := `Error: /path/app.json:1: unknown field "extra"`
 
 	if got != want {
-		t.Fatalf("Error() = %q, want %q", got, want)
+		t.Fatalf("Verdict() = %q, want %q", got, want)
 	}
 }

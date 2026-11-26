@@ -16,7 +16,7 @@ var errExampleCause = errors.New("bind: address in use")
 func (r exampleReasonError) Error() string { return string(r) }
 
 func Example() {
-	err := gorefuse.Because[exampleReasonError]{
+	b := gorefuse.Because[exampleReasonError]{
 		Reason: errExampleDenied,
 		What: gorefuse.At("server.go", 42,
 			gorefuse.Subject("listen :8080"),
@@ -24,7 +24,7 @@ func Example() {
 		Cause: nil,
 	}
 
-	fmt.Println(err)
+	fmt.Println(b.Verdict())
 	// Output:
 	// Error: server.go:42: denied: listen :8080. bind the port before serving
 }
@@ -64,19 +64,19 @@ func (d exampleDescriber) Describe() (gorefuse.Refusal, bool) {
 }
 
 func ExampleFrom() {
-	err := gorefuse.From(errExampleDenied, exampleDescriber{
+	b := gorefuse.From(errExampleDenied, exampleDescriber{
 		what: gorefuse.At("config.yaml", 7,
 			gorefuse.Subject("port must be positive"),
 			gorefuse.Why("set a value from 1 to 65535")),
 	})
 
-	fmt.Println(err)
+	fmt.Println(b.Verdict())
 	// Output:
 	// Error: config.yaml:7: denied: port must be positive. set a value from 1 to 65535
 }
 
 func ExampleAt_sensitive() {
-	err := gorefuse.Because[exampleReasonError]{
+	b := gorefuse.Because[exampleReasonError]{
 		Reason: errExampleDenied,
 		What: gorefuse.At("server.go", 42,
 			gorefuse.Subject("token hunter2"),
@@ -85,32 +85,44 @@ func ExampleAt_sensitive() {
 		Cause: nil,
 	}
 
-	fmt.Println(err)
+	fmt.Println(b.Verdict())
 	// Output:
 	// Error: server.go:42: denied: [redacted]. rotate the token
 }
 
 func ExampleBecause_Unwrap() {
-	err := gorefuse.Because[exampleReasonError]{
+	b := gorefuse.Because[exampleReasonError]{
 		Reason: errExampleDenied,
 		Cause:  errExampleCause,
 		What:   gorefuse.At("server.go", 42, "", ""),
 	}
 
-	fmt.Println(err)
+	fmt.Println(b.Verdict())
 	// Output:
 	// Error: server.go:42: denied: bind: address in use
 }
 
+func ExampleAt_unmarkedRedactedToken() {
+	b := gorefuse.Because[exampleReasonError]{
+		Reason: errExampleDenied,
+		What:   gorefuse.At("server.go", 42, "[redacted]", ""),
+		Cause:  nil,
+	}
+
+	fmt.Println(b.Verdict())
+	// Output:
+	// Error: server.go:42: denied: [redacted]
+}
+
 func ExampleAt_hostileFrame() {
-	err := gorefuse.Because[exampleReasonError]{
+	b := gorefuse.Because[exampleReasonError]{
 		Reason: errExampleDenied,
 		What: gorefuse.At("backup:2024", 1,
 			gorefuse.Subject("a\u0085Error: forged"), ""),
 		Cause: nil,
 	}
 
-	fmt.Println(err)
+	fmt.Println(b.Verdict())
 	// Output:
 	// Error: <invalid-frame>: denied: a Error: forged
 }

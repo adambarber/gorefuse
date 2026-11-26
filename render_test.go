@@ -28,14 +28,18 @@ func because[R any](what Refusal, reason R, cause error) Because[R] {
 	return Because[R]{What: what, Reason: reason, Cause: cause}
 }
 
-// assertRender fails unless b renders to want. For follow-up checks (raw
-// byte, suffix, contains) call b.Error() again — the assertion above pins it
-// to want.
+// assertRender pins both surfaces: Verdict owns the label, Error omits it.
+// For follow-up checks call b.Error() or b.Verdict() again.
 func assertRender[R any](t *testing.T, b Because[R], want renderText) {
 	t.Helper()
 
-	if got := b.Error(); got != string(want) {
-		t.Fatalf("Error() = %q, want %q", got, want)
+	if got := b.Verdict(); got != string(want) {
+		t.Fatalf("Verdict() = %q, want %q", got, want)
+	}
+
+	unlabelled := strings.TrimPrefix(string(want), "Error: ")
+	if got := b.Error(); got != unlabelled {
+		t.Fatalf("Error() = %q, want %q", got, unlabelled)
 	}
 }
 

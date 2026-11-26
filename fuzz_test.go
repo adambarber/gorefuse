@@ -11,6 +11,12 @@ type fuzzDescriber struct{ refusal Refusal }
 
 func (f fuzzDescriber) Describe() (Refusal, bool) { return f.refusal, true }
 
+// verdictCarrier is both an error and a labelled renderer.
+type verdictCarrier interface {
+	error
+	Verdict() string
+}
+
 // FuzzError pins the render-path guarantees against arbitrary slot content.
 // Every carrier is built from the fuzz inputs; no input is filtered out.
 func FuzzError(f *testing.F) {
@@ -47,7 +53,8 @@ func assertFuzzRender(t *testing.T, file, reason, slot string, line int64, marks
 	for _, carrier := range fuzzCarriers(file, reason, slot, line, marks) {
 		first := carrier.Error()
 		second := carrier.Error()
-		assertRenderProps(t, first, second)
+		assertContentProps(t, first, second)
+		assertOneVerdict(t, renderText(carrier.Verdict()))
 	}
 
 	// At masks unknown bits before construction, so the fixed-reason
@@ -55,13 +62,13 @@ func assertFuzzRender(t *testing.T, file, reason, slot string, line int64, marks
 	assertSensitiveProps(t, slot, marks)
 }
 
-func fuzzCarriers(file, reason, slot string, line int64, marks uint8) []error {
+func fuzzCarriers(file, reason, slot string, line int64, marks uint8) []verdictCarrier {
 	what := Refusal{
 		File: File(file), Line: Line(line), Subject: Subject(slot),
 		Why: Why(slot), Sensitive: Sensitive(marks),
 	}
 
-	carriers := []error{
+	carriers := []verdictCarrier{
 		Because[string]{Reason: reason, What: what, Cause: confError(slot)},
 		From(testReason(reason), fuzzDescriber{refusal: what}),
 	}
@@ -79,10 +86,9 @@ func fuzzCarriers(file, reason, slot string, line int64, marks uint8) []error {
 	return carriers
 }
 
-// assertRenderProps fails unless the render holds the pinned properties:
-// valid UTF-8, idempotent, no unscrubbed ESC byte, and exactly one verdict on
-// a single line.
-func assertRenderProps(t *testing.T, first, second string) {
+// assertContentProps fails unless Error holds the content properties:
+// valid UTF-8, idempotent, no unscrubbed ESC byte, and no trailing connector.
+func assertContentProps(t *testing.T, first, second string) {
 	t.Helper()
 
 	if !utf8.ValidString(first) {
@@ -100,8 +106,6 @@ func assertRenderProps(t *testing.T, first, second string) {
 	if strings.HasSuffix(first, " ") {
 		t.Fatalf("Error() = %q, has a dangling connector or trailing space", first)
 	}
-
-	assertOneVerdict(t, renderText(first))
 }
 
 const sensitiveMarker = "\x02"

@@ -6,13 +6,28 @@ import (
 	"unicode/utf8"
 )
 
-// Error renders one verdict per line: label, frame, reason, subject, cause,
-// fix. Empty-after-scrub slots contribute nothing. Scrub makes the output valid
-// UTF-8, replaces ESC and invalid bytes with U+FFFD, and flattens every line
-// break (including U+0085, U+2028/U+2029 and NUL) to a space so no slot can forge a
-// second line-start verdict. Marked slots render as [redacted] (CauseSensitive
-// contributes nothing); bidi overrides pass through as valid Unicode.
+// Error renders the refusal content without a verdict label: frame, reason,
+// subject, cause, fix. Empty-after-scrub slots contribute nothing. Scrub makes
+// the output valid UTF-8 and flattens every line break to a space. Marked slots
+// render as [redacted]; bidi overrides pass through as valid Unicode.
 func (b Because[R]) Error() string {
+	return b.render()
+}
+
+// Verdict renders one labelled verdict for log emission: Error: plus the
+// content Error returns. The label lives here, not in Error, so wrapped chains
+// compose without a second verdict embedded mid-string.
+func (b Because[R]) Verdict() string {
+	content := b.render()
+	if content == "" {
+		return ""
+	}
+
+	return "Error: " + content
+}
+
+// render is the single scrubbed render shared by Error and Verdict.
+func (b Because[R]) render() string {
 	r := b.What.normalize()
 
 	var msg string
@@ -46,7 +61,7 @@ func (b Because[R]) Error() string {
 		return ""
 	}
 
-	return "Error: " + msg + sentenceTail(msg, string(why)) + string(why)
+	return msg + sentenceTail(msg, string(why)) + string(why)
 }
 
 // scrub guarantees one slot's text is well-formed UTF-8 on a single line:

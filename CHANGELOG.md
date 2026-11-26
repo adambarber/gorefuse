@@ -8,6 +8,7 @@ No changes since v0.2.0.
 
 Breaking changes from v0.1.1:
 
+- The verdict label moved from `Error()` to `Verdict()`. Wrapping now reads `starting server: server.go:42: ...` instead of embedding a second `Error:` mid-string.
 - `Error()` flattens `\r`, `\n`, `\v`, `\f`, NUL, U+0085, U+2028 and U+2029 to spaces. Earlier versions emitted embedded line breaks.
 - NUL-only slots are empty after scrubbing; they no longer emit dangling `": "` or `". "` connectors.
 - Unknown `Sensitive` bits fail closed on hand-built and `From` carriers as well as `At`: the frame becomes `<invalid-frame>` and populated Subject/Why slots render as `[redacted]`.

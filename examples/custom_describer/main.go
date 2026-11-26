@@ -25,11 +25,11 @@ func (d domainRefusal) Describe() (gorefuse.Refusal, bool) {
 }
 
 func main() {
-	err := gorefuse.From(errInvalid, domainRefusal{
+	b := gorefuse.From(errInvalid, domainRefusal{
 		what: gorefuse.At("config.yaml", errLine,
 			gorefuse.Subject("port must be positive"),
 			gorefuse.Why("set a value from 1 to 65535")),
 	})
 
-	fmt.Println(err)
+	fmt.Println(b.Verdict())
 }

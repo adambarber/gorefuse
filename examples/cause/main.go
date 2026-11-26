@@ -20,12 +20,12 @@ const errLine gorefuse.Line = 42
 func (r reasonError) Error() string { return string(r) }
 
 func main() {
-	err := gorefuse.Because[reasonError]{
+	b := gorefuse.Because[reasonError]{
 		Reason: errDenied,
 		Cause:  errBind,
 		What:   gorefuse.At("server.go", errLine, "", ""),
 	}
 
-	fmt.Println(err)
-	fmt.Println(errors.Is(err, errBind))
+	fmt.Println(b.Verdict())
+	fmt.Println(errors.Is(b, errBind))
 }

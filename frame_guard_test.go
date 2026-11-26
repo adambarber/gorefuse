@@ -22,7 +22,7 @@ func TestHandBuiltDanglingColonFileRendersPlaceholder(t *testing.T) {
 		What:   Refusal{File: File("a.go:"), Subject: Subject("s"), Why: Why(""), Line: 7, Sensitive: 0},
 	}
 
-	if got := b.Error(); got != "Error: "+invalidFrame+": r: s" {
+	if got := b.Verdict(); got != "Error: "+invalidFrame+": r: s" {
 		t.Fatalf("render = %q, want %q", got, "Error: "+invalidFrame+": r: s")
 	}
 }
@@ -52,7 +52,7 @@ func TestHandBuiltUnknownBitsFailClosed(t *testing.T) {
 	}
 
 	want := "Error: " + invalidFrame + ": r: " + Redacted + ". " + Redacted
-	if got := b.Error(); got != want {
+	if got := b.Verdict(); got != want {
 		t.Fatalf("render = %q, want %q", got, want)
 	}
 }
@@ -65,7 +65,7 @@ func TestHandBuiltUnknownBitsWithoutFileFailClosed(t *testing.T) {
 	}
 
 	want := "Error: " + invalidFrame + ": r: " + Redacted + ". " + Redacted
-	if got := b.Error(); got != want {
+	if got := b.Verdict(); got != want {
 		t.Fatalf("render = %q, want %q", got, want)
 	}
 }
