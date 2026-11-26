@@ -107,7 +107,7 @@ To prove how a value was classified, match the carrier with `errors.As` and insp
 
 ## Caveats
 
-- The `Error:` prefix means a wrapped chain reads `starting server: Error: server.go:42: ...`. Compose for humans and use `errors.Is` for control flow.
+- The label is added by `Verdict()`, not by `Error()`. Wrapping reads `starting server: server.go:42: ...`; call `Verdict()` when emitting a single labelled log line.
 - Redaction is a rendering decision, not a security boundary: only marked slots are hidden, and the marker is guessable.
 - Structure is prose-only today; machine-readable output is planned and will derive from the same described parts rather than re-render the string.
 
