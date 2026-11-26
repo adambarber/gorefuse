@@ -27,8 +27,8 @@ func main() {
 
 	fmt.Println(errors.Is(wrapped, errDenied))
 
-	because, ok := errors.AsType[gorefuse.Because[reasonError]](wrapped)
-	if ok {
+	var because gorefuse.Because[reasonError]
+	if errors.As(wrapped, &because) {
 		fmt.Println(because.What.File, because.What.Line)
 	}
 }

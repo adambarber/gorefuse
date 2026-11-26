@@ -30,7 +30,7 @@ func TestWhitespaceContract(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			assertRender(t, because(Refusal{File: tc.file, Line: 0, Subject: "", Why: tc.why, Sensitive: 0}, tc.reason, nil), renderText("Error: "+tc.want))
+			assertRender(t, Wrap(tc.reason, Refusal{File: tc.file, Line: 0, Subject: "", Why: tc.why, Sensitive: 0}, nil), renderText("Error: "+tc.want))
 		})
 	}
 }
@@ -54,12 +54,12 @@ func TestSkipIfEmptyUniform(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			assertRender(t, because(Refusal{File: tc.file, Line: tc.line, Subject: tc.subject, Why: tc.why, Sensitive: 0}, tc.reason, nil), renderText("Error: "+tc.want))
+			assertRender(t, Wrap(tc.reason, Refusal{File: tc.file, Line: tc.line, Subject: tc.subject, Why: tc.why, Sensitive: 0}, nil), renderText("Error: "+tc.want))
 		})
 	}
 }
 
 func TestFrameWhitespaceFileSuppressed(t *testing.T) {
-	assertRender(t, because(Refusal{File: " ", Line: 3, Subject: testSubject, Why: "", Sensitive: 0}, testRefused, nil),
+	assertRender(t, Wrap(testRefused, Refusal{File: " ", Line: 3, Subject: testSubject, Why: "", Sensitive: 0}, nil),
 		renderText("Error: "+string(testRefused)+": "+string(testSubject)))
 }

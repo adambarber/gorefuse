@@ -7,7 +7,7 @@ import (
 )
 
 func TestErrorDoesNotEmbedVerdictLabel(t *testing.T) {
-	b := because(At("server.go", 42, "listen :8080", "bind the port"), testRefused, nil)
+	b := Wrap(testRefused, At("server.go", 42, "listen :8080", "bind the port"), nil)
 	want := "server.go:42: refused: listen :8080. bind the port"
 
 	if got := b.Error(); got != want {
@@ -20,7 +20,7 @@ func TestErrorDoesNotEmbedVerdictLabel(t *testing.T) {
 }
 
 func TestVerdictOwnsSingleLabel(t *testing.T) {
-	b := because(At("server.go", 42, "listen :8080", "bind the port"), testRefused, nil)
+	b := Wrap(testRefused, At("server.go", 42, "listen :8080", "bind the port"), nil)
 	want := "Error: server.go:42: refused: listen :8080. bind the port"
 
 	if got := b.Verdict(); got != want {
@@ -29,7 +29,7 @@ func TestVerdictOwnsSingleLabel(t *testing.T) {
 }
 
 func TestWrappedErrorStaysComposable(t *testing.T) {
-	b := because(At("server.go", 42, "listen :8080", "bind the port"), testRefused, nil)
+	b := Wrap(testRefused, At("server.go", 42, "listen :8080", "bind the port"), nil)
 	wrapped := fmt.Errorf("startup: %w", b)
 	want := "startup: server.go:42: refused: listen :8080. bind the port"
 

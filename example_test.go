@@ -48,8 +48,8 @@ func ExampleBecause_as() {
 		Cause:  nil,
 	}
 
-	because, ok := errors.AsType[gorefuse.Because[exampleReasonError]](err)
-	if ok {
+	var because gorefuse.Because[exampleReasonError]
+	if errors.As(err, &because) {
 		fmt.Println(because.What.File, because.What.Line)
 	}
 	// Output: server.go 42

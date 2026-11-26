@@ -53,7 +53,7 @@ func (r *typedNilError) Error() string { return "unreachable" }
 
 func TestTypedNilErrorReasonContributesNothing(t *testing.T) {
 	var reason *typedNilError
-	assertRender(t, because(testEmptyWhat(testSubject, ""), reason, nil), renderText("Error: "+string(testSubject)))
+	assertRender(t, Wrap(reason, testEmptyWhat(testSubject, ""), nil), renderText("Error: "+string(testSubject)))
 }
 
 func TestFromNilDescribableKinds(t *testing.T) {

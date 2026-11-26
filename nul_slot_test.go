@@ -16,12 +16,12 @@ func TestNulOnlySlotsContributeNothing(t *testing.T) {
 		want renderText
 		b    Because[testReason]
 	}{
-		nulReasonLabel:   {want: "", b: because(testEmptyWhat("", ""), testReason("\x00\x00"), nil)},
-		nulSubjectLabel:  {want: nulRenderedRefusal, b: because(testEmptyWhat("\x00", ""), testRefused, nil)},
-		nulWhyLabel:      {want: nulRenderedRefusal, b: because(testEmptyWhat("", "\x00"), testRefused, nil)},
-		"all slots":      {want: "", b: because(testEmptyWhat("\x00", "\x00"), testReason("\x00"), nil)},
-		"marked subject": {want: nulRenderedRefusal, b: because(Refusal{File: "", Subject: "\x00", Why: "", Line: 0, Sensitive: SubjectSensitive}, testRefused, nil)},
-		"marked why":     {want: nulRenderedRefusal, b: because(Refusal{File: "", Subject: "", Why: "\x00", Line: 0, Sensitive: WhySensitive}, testRefused, nil)},
+		nulReasonLabel:   {want: "", b: Wrap(testReason("\x00\x00"), testEmptyWhat("", ""), nil)},
+		nulSubjectLabel:  {want: nulRenderedRefusal, b: Wrap(testRefused, testEmptyWhat("\x00", ""), nil)},
+		nulWhyLabel:      {want: nulRenderedRefusal, b: Wrap(testRefused, testEmptyWhat("", "\x00"), nil)},
+		"all slots":      {want: "", b: Wrap(testReason("\x00"), testEmptyWhat("\x00", "\x00"), nil)},
+		"marked subject": {want: nulRenderedRefusal, b: Wrap(testRefused, Refusal{File: "", Subject: "\x00", Why: "", Line: 0, Sensitive: SubjectSensitive}, nil)},
+		"marked why":     {want: nulRenderedRefusal, b: Wrap(testRefused, Refusal{File: "", Subject: "", Why: "\x00", Line: 0, Sensitive: WhySensitive}, nil)},
 	}
 
 	for name, tc := range cases {

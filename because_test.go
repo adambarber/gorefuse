@@ -28,36 +28,36 @@ const wantFrameSubject = "Error: f.toml: refused: server.tls"
 // TestVerdictPrefixPinsErrorLabel pins the owner's verdict-label ruling:
 // Error() output begins with "Error: " so a render is marked as an error.
 func TestVerdictPrefixPinsErrorLabel(t *testing.T) {
-	assertRender(t, because(Refusal{File: testFile, Line: 3, Subject: testSubject, Why: "", Sensitive: 0}, testRefused, nil),
+	assertRender(t, Wrap(testRefused, Refusal{File: testFile, Line: 3, Subject: testSubject, Why: "", Sensitive: 0}, nil),
 		renderText("Error: "+string(testFile)+":3: "+string(testRefused)+": "+string(testSubject)))
 }
 
 func TestReasonAlone(t *testing.T) {
-	assertRender(t, because(Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, testMissing, nil), "Error: missing")
+	assertRender(t, Wrap(testMissing, Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, nil), "Error: missing")
 }
 
 func TestFramePrefixWholeFile(t *testing.T) {
-	assertRender(t, because(Refusal{File: "config.toml", Line: 0, Subject: "", Why: "", Sensitive: 0}, testRefused, nil),
+	assertRender(t, Wrap(testRefused, Refusal{File: "config.toml", Line: 0, Subject: "", Why: "", Sensitive: 0}, nil),
 		"Error: config.toml: refused")
 }
 
 func TestFramePrefixWithLine(t *testing.T) {
-	assertRender(t, because(Refusal{File: "config.toml", Line: 12, Subject: "", Why: "", Sensitive: 0}, testRefused, nil),
+	assertRender(t, Wrap(testRefused, Refusal{File: "config.toml", Line: 12, Subject: "", Why: "", Sensitive: 0}, nil),
 		"Error: config.toml:12: refused")
 }
 
 func TestSubjectAppends(t *testing.T) {
-	assertRender(t, because(Refusal{File: testFile, Line: 0, Subject: testSubject, Why: "", Sensitive: 0}, testRefused, nil),
+	assertRender(t, Wrap(testRefused, Refusal{File: testFile, Line: 0, Subject: testSubject, Why: "", Sensitive: 0}, nil),
 		wantFrameSubject)
 }
 
 func TestWhyAppendsAsSentence(t *testing.T) {
-	assertRender(t, because(Refusal{File: testFile, Line: 0, Subject: testSubject, Why: "Rotate the certificate.", Sensitive: 0}, testRefused, nil),
+	assertRender(t, Wrap(testRefused, Refusal{File: testFile, Line: 0, Subject: testSubject, Why: "Rotate the certificate.", Sensitive: 0}, nil),
 		"Error: f.toml: refused: server.tls. Rotate the certificate.")
 }
 
 func TestCauseTail(t *testing.T) {
-	assertRender(t, because(Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, testRefused, errTestSentinel),
+	assertRender(t, Wrap(testRefused, Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, errTestSentinel),
 		"Error: refused: root cause")
 }
 
@@ -70,7 +70,7 @@ func TestNestedBecauseCauseStaysUnlabelled(t *testing.T) {
 
 	assertRender(t, outer, "Error: missing: refused")
 
-	for line := range strings.SplitSeq(outer.Error(), "\n") {
+	for _, line := range strings.Split(outer.Error(), "\n") {
 		if strings.Contains(line, "Error: ") {
 			t.Fatalf("Error() = %q, a nested carrier must not embed a label", line)
 		}
@@ -78,26 +78,26 @@ func TestNestedBecauseCauseStaysUnlabelled(t *testing.T) {
 }
 
 func TestFullRenderStableOrder(t *testing.T) {
-	assertRender(t, because(Refusal{File: testFile, Line: 3, Subject: testSubject, Why: "Renew it.", Sensitive: 0}, testRefused, errTestSentinel),
+	assertRender(t, Wrap(testRefused, Refusal{File: testFile, Line: 3, Subject: testSubject, Why: "Renew it.", Sensitive: 0}, errTestSentinel),
 		"Error: f.toml:3: refused: server.tls: root cause. Renew it.")
 }
 
 func TestUnwrapToCause(t *testing.T) {
-	b := because(Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, testRefused, errTestSentinel)
+	b := Wrap(testRefused, Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, errTestSentinel)
 	if !errors.Is(b, errTestSentinel) {
 		t.Fatal("errors.Is(Because, sentinel) = false, want true")
 	}
 }
 
 func TestUnwrapNilCause(t *testing.T) {
-	b := because(Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, testRefused, nil)
+	b := Wrap(testRefused, Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, nil)
 	if b.Unwrap() != nil {
 		t.Fatalf("Unwrap() = %v, want nil", b.Unwrap())
 	}
 }
 
 func TestReasonRendersStringer(t *testing.T) {
-	assertRender(t, because(Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, stringerReason{}, nil), "Error: rendered")
+	assertRender(t, Wrap(stringerReason{}, Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, nil), "Error: rendered")
 }
 
 type stringerReason struct{}
@@ -105,8 +105,8 @@ type stringerReason struct{}
 func (stringerReason) String() string { return "rendered" }
 
 func TestDistinctReasonTypesAreDistinctTypes(t *testing.T) {
-	a := because(Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, testRefused, nil)
-	b := because(Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, otherRefused, nil)
+	a := Wrap(testRefused, Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, nil)
+	b := Wrap(otherRefused, Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, nil)
 
 	ta, tb := fmt.Sprintf("%T", a), fmt.Sprintf("%T", b)
 	if ta == tb {

@@ -89,7 +89,7 @@ func TestAtStoresTrimmedFile(t *testing.T) {
 }
 
 func TestMarkedCauseSuppressesCauseTail(t *testing.T) {
-	b := because(Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: CauseSensitive}, testRefused, errTestSentinel)
+	b := Wrap(testRefused, Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: CauseSensitive}, errTestSentinel)
 
 	assertRender(t, b, "Error: "+testRendered)
 }
@@ -123,19 +123,19 @@ func TestFromForgedTrailingDigitsFileZeroLineStillPlaceholder(t *testing.T) {
 }
 
 func TestEmptyFrameSkipsLine(t *testing.T) {
-	b := because(Refusal{File: "", Line: 7, Subject: testSubject, Why: "", Sensitive: 0}, testRefused, nil)
+	b := Wrap(testRefused, Refusal{File: "", Line: 7, Subject: testSubject, Why: "", Sensitive: 0}, nil)
 	assertRender(t, b, renderText("Error: refused: "+string(testSubject)))
 }
 
 func TestFrameSkipsNegativeLine(t *testing.T) {
 	// A negative Line can never pair as file:line, but no pairing at all is
 	// the only shape the parser contract allows; the line is skipped.
-	b := because(Refusal{File: testFile, Line: -3, Subject: "", Why: "", Sensitive: 0}, testRefused, nil)
+	b := Wrap(testRefused, Refusal{File: testFile, Line: -3, Subject: "", Why: "", Sensitive: 0}, nil)
 
 	assertRender(t, b, renderText("Error: "+string(testFile)+": refused"))
 }
 
 func TestFrameAcceptsInteriorColonFile(t *testing.T) {
-	assertRender(t, because(At("a:b.go", 3, "", Why(testFix)), testRefused, nil),
+	assertRender(t, Wrap(testRefused, At("a:b.go", 3, "", Why(testFix)), nil),
 		"Error: a:b.go:3: refused. "+testFix)
 }

@@ -33,12 +33,12 @@ func TestCarriageReturnNeutralized(t *testing.T) {
 
 func TestInvalidUTF8BecomesReplacementChar(t *testing.T) {
 	// strings.ToValidUTF8 replaces each run of invalid bytes with one U+FFFD.
-	assertRender(t, because(Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, testReason("bad \xff\xfe tail"), nil),
+	assertRender(t, Wrap(testReason("bad \xff\xfe tail"), Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, nil),
 		"Error: bad \uFFFD tail")
 }
 
 func TestESCEscapeNeutralized(t *testing.T) {
-	b := because(Refusal{File: "", Line: 0, Subject: "a\x1b[31mb", Why: "", Sensitive: 0}, "re\x1bfused", nil)
+	b := Wrap("re\x1bfused", Refusal{File: "", Line: 0, Subject: "a\x1b[31mb", Why: "", Sensitive: 0}, nil)
 
 	assertRender(t, b, "Error: re\uFFFDfused: a\uFFFD[31mb")
 
@@ -73,7 +73,7 @@ func TestLineBreaksFlattened(t *testing.T) {
 }
 
 func TestBidiOverridePassesThrough(t *testing.T) {
-	assertRender(t, because(Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, testReason("dir\u202Ecru/"), nil),
+	assertRender(t, Wrap(testReason("dir\u202Ecru/"), Refusal{File: "", Line: 0, Subject: "", Why: "", Sensitive: 0}, nil),
 		"Error: dir\u202Ecru/")
 }
 

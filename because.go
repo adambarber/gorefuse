@@ -51,3 +51,22 @@ func (b Because[R]) Is(target error) bool {
 
 	return false
 }
+
+// Refuse builds a carrier without a cause, so callers do not spell the struct
+// literal at every refusal site.
+func Refuse[R any](reason R, what Refusal) Because[R] {
+	return Wrap(reason, what, nil)
+}
+
+// Wrap builds a carrier with one cause. errors.Is and errors.As traverse it
+// through Unwrap.
+func Wrap[R any](reason R, what Refusal, cause error) Because[R] {
+	return Because[R]{Cause: cause, What: what, Reason: reason}
+}
+
+// Join builds a carrier whose cause is errors.Join of causes. The joined cause
+// keeps standard multi-error identity; a marked Cause slot suppresses the
+// whole joined tail in prose, JSON, and structured logs.
+func Join[R any](reason R, what Refusal, causes ...error) Because[R] {
+	return Because[R]{Reason: reason, Cause: errors.Join(causes...), What: what}
+}

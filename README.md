@@ -1,8 +1,8 @@
 # gorefuse
 
-A typed refusal vocabulary for Go: carry a refusal as an `error` with a reason identity, a `file:line` frame, and one byte-stable render.
+A typed refusal vocabulary for Go: carry a refusal as an `error` with a reason identity, a `file:line` frame, and one stable prose render.
 
-`fmt.Errorf` gives wrapping but no guaranteed render shape, no frame, and no reason you can switch on. gorefuse gives you one carrier, one constructor, and one render contract.
+`fmt.Errorf` gives wrapping but no guaranteed render shape, no frame, and no reason you can switch on. gorefuse gives you one carrier, a few plain constructors, and one render contract.
 
 ## Install
 
@@ -10,7 +10,7 @@ A typed refusal vocabulary for Go: carry a refusal as an `error` with a reason i
 go get github.com/adambarber/gorefuse
 ```
 
-Go 1.27 or later; no dependencies outside the standard library.
+Go 1.21 or later; no dependencies outside the standard library.
 
 ## Example
 
@@ -73,7 +73,7 @@ Render order is fixed: **verdict label → frame → reason → subject → caus
 - **Marked slots are redacted.** A marked `Subject` or `Why` renders as `[redacted]`; a marked `Cause` renders nothing. Marked cause slots still unwrap. Unknown sensitive bits fail closed on every construction path.
 - **Reason identity, not reason words.** `Is` matches only an error-kinded reason; a non-error reason domain is matched with `errors.As` on the carrier. A nil target never matches and another reason type never bridges domains.
 - **The zero value is an empty error.** A zero `Because[R]` renders `""` and is still a non-nil `error`.
-- **Byte-stable.** Exact-byte tests and a fuzz target pin validity, idempotence, a single line-start verdict, no trailing connector, and slot redaction.
+- **Pinned prose shape.** Exact-byte tests and a fuzz target pin validity, idempotence, a single line-start verdict, no trailing connector, and slot redaction. Order and shape are stable; bytes may change before v1.0.
 
 ## Error and failure contract
 
@@ -81,6 +81,10 @@ Render order is fixed: **verdict label → frame → reason → subject → caus
 - `Describe` must not panic; `From` does not recover.
 - A `Cause` whose `Error()` panics is the caller's defect; gorefuse does not recover.
 - `At` panics only on caller mistakes: negative line, line without a file, or unknown sensitive bits. Hostile file names are data.
+
+## Construction and composition
+
+Use `Refuse(reason, what)`, `Wrap(reason, what, cause)`, or `Join(reason, what, causes...)` instead of spelling the struct literal. `Join` stores `errors.Join(causes...)` as the cause, so `errors.Is` and `errors.As` traverse every member through the standard library. A marked cause suppresses the whole joined tail in prose, JSON, and structured logs.
 
 ## What redaction does and does not do
 
@@ -96,20 +100,22 @@ fmt.Println(b.Verdict())
 // Error: server.go:42: denied: [redacted]
 ```
 
-To prove how a value was classified, match the carrier with `errors.As` and inspect `What.Sensitive`; the string alone cannot tell you. The planned structured form will carry per-part sensitivity as a typed attribute, from which both prose and future formats derive.
+To prove how a value was classified, match the carrier with `errors.As` and inspect `What.Sensitive`; the string alone cannot tell you. `MarshalJSON` and `slog.LogValuer` carry the same slot decisions, so a marked subject or fix becomes `[redacted]` in structured logs too.
 
 ## Comparison
 
 - **vs `fmt.Errorf`:** typed reason identity and a fixed, parseable render; you give up free-form lowercase error fragments.
 - **vs `cockroachdb/errors`:** no stack traces, network encoding, or Sentry reports; standard-library-only and byte-pinned instead.
-- **vs `rotisserie/eris`:** no JSON formatter yet; prose rendering is the only output today.
+- **vs `rotisserie/eris`:** JSON and `slog` output carry the same slot decisions; no formatter plugins or stack encoding.
 - **vs `joomcode/errorx`:** the reason is a type parameter rather than a trait system; smaller surface, fewer capabilities.
+- **vs `shiwano/errdef`:** definition identity and redaction across encoders are close prior art; gorefuse adds the refusal-as-remediation framing and a byte-pinned prose contract.
+- **vs `upspin.io/errors`:** the fixed `file:line` frame and reason vocabulary are similar in spirit; gorefuse makes the reason domain a compile-time type parameter.
 
 ## Caveats
 
 - The label is added by `Verdict()`, not by `Error()`. Wrapping reads `starting server: server.go:42: ...`; call `Verdict()` when emitting a single labelled log line.
 - Redaction is a rendering decision, not a security boundary: only marked slots are hidden, and the marker is guessable.
-- Structure is prose-only today; machine-readable output is planned and will derive from the same described parts rather than re-render the string.
+- Machine-readable output is limited to `encoding/json` and `log/slog`; there is no protobuf or Sentry integration.
 
 ## Examples
 
@@ -117,7 +123,7 @@ To prove how a value was classified, match the carrier with `errors.As` and insp
 
 ## Status
 
-Pre-1.0. Unreleased on `main`; the next tag will be `v0.2.0` and the last tag is `v0.1.1`. The pending release moves the verdict label from `Error()` to `Verdict()`, flattens every line break, makes `At` total on file names, and narrows `Is` to error-kinded reasons. Exact-byte pins were updated in the same commits.
+Pre-1.0. Current release: `v0.2.1`. It adds machine-readable output, plain constructors, a documented multi-cause story, and lowers the Go floor to 1.21.
 
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/adambarber/gorefuse)](https://pkg.go.dev/github.com/adambarber/gorefuse) [![Release](https://img.shields.io/github/release/adambarber/gorefuse.svg?color=%23007ec6)](https://github.com/adambarber/gorefuse/releases/latest) [![test](https://github.com/adambarber/gorefuse/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/adambarber/gorefuse/actions/workflows/test.yml) [![lint](https://github.com/adambarber/gorefuse/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/adambarber/gorefuse/actions/workflows/lint.yml) [![coverage](https://raw.githubusercontent.com/adambarber/gorefuse/badges/.badges/main/coverage.svg)](.testcoverage.yml)
 

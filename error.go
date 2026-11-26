@@ -2,6 +2,7 @@ package gorefuse
 
 import (
 	"fmt"
+	"log/slog"
 	"strings"
 	"unicode/utf8"
 )
@@ -138,4 +139,49 @@ func sentenceTail(msg, why string) string {
 	}
 
 	return ". "
+}
+
+type reasonText string
+
+type causeText string
+
+// LogValue gives structured loggers the same slot decisions as Error: marked
+// subject and why become Redacted, and a marked cause is omitted entirely.
+func (b Because[R]) LogValue() slog.Value {
+	n := b.What.normalize()
+
+	attrs := []slog.Attr{
+		slog.String("reason", string(reasonTextOf(b.Reason))),
+		slog.String("file", string(n.File)),
+		slog.Int("line", int(n.Line)),
+		slog.String("subject", string(structuredSubject(n))),
+		slog.String("why", string(structuredWhy(n))),
+		slog.Bool("sensitive", n.Sensitive != 0),
+	}
+
+	if b.Cause != nil && n.Sensitive&CauseSensitive == 0 {
+		attrs = append(attrs, slog.String("cause", string(causeTextOf(b.Cause))))
+	}
+
+	return slog.GroupValue(attrs...)
+}
+
+func reasonTextOf[R any](reason R) reasonText { return reasonText(fmt.Sprint(reason)) }
+
+func causeTextOf(err error) causeText { return causeText(err.Error()) }
+
+func structuredSubject(r Refusal) Subject {
+	if r.Sensitive&SubjectSensitive != 0 {
+		return Subject(Redacted)
+	}
+
+	return r.Subject
+}
+
+func structuredWhy(r Refusal) Why {
+	if r.Sensitive&WhySensitive != 0 {
+		return Why(Redacted)
+	}
+
+	return r.Why
 }

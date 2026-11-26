@@ -1,9 +1,11 @@
 package gorefuse
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 	"testing"
 )
@@ -20,8 +22,8 @@ func FuzzRedactionAcrossEncoders(f *testing.F) {
 	f.Fuzz(func(t *testing.T, value []byte) {
 		planted := secretEncoderProbe(fmt.Sprintf("SECRET-%x", value))
 
-		b := Because[string]{
-			Reason: "denied",
+		b := Because[encoderReason]{
+			Reason: encoderReason("denied"),
 			Cause:  fmt.Errorf("%w %s", errFuzzCause, planted),
 			What: At(File("f.go"), 1,
 				Subject(planted), Why(planted),
@@ -39,6 +41,7 @@ func FuzzRedactionAcrossEncoders(f *testing.F) {
 			"GoString":    fmt.Sprintf("%+v", b),
 			"JSON":        string(encoded),
 			"RefusalJSON": string(jsonMustMarshal(t, b.What)),
+			"SlogJSON":    string(slogMustJSON(t, b)),
 		}
 
 		for name, out := range surfaces {
@@ -50,6 +53,8 @@ func FuzzRedactionAcrossEncoders(f *testing.F) {
 }
 
 type secretEncoderProbe string
+
+type encoderReason string
 
 type encoderSurface string
 
@@ -64,4 +69,15 @@ func jsonMustMarshal(t *testing.T, v Refusal) encoderOutput {
 	}
 
 	return encoderOutput(b)
+}
+
+func slogMustJSON(t *testing.T, v Because[encoderReason]) encoderOutput {
+	t.Helper()
+
+	var out bytes.Buffer
+
+	logger := slog.New(slog.NewJSONHandler(&out, nil))
+	logger.Info("refusal", "error", v)
+
+	return encoderOutput(out.String())
 }

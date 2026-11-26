@@ -1,8 +1,11 @@
 # Changelog
 
-## Unreleased
+## v0.2.1
 
-No changes since v0.2.0.
+- `MarshalJSON` and `slog.LogValuer` carry the same slot decisions as the prose renderer: marked Subject and Why become `[redacted]`, and a marked Cause is omitted.
+- Added `Refuse`, `Wrap`, and `Join` constructors; `Join` composes causes with `errors.Join` and keeps standard `errors.Is`/`errors.As` traversal.
+- Lowered the Go floor from 1.27 to 1.21; the shipped package needs only generics and stdlib basics.
+- The render contract is documented as a pinned prose shape, not immutable bytes before v1.0.
 
 ## v0.2.0
 

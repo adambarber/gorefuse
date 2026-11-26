@@ -97,12 +97,14 @@ func TestIsCrossDomainNeverBridges(t *testing.T) {
 func TestNonErrorReasonTypeIdentityViaAs(t *testing.T) {
 	chain := error(From(testRefused, nil))
 
-	if got, ok := errors.AsType[Because[testReason]](chain); !ok {
-		t.Fatalf("AsType failed to match the carrier's own domain: %v", got)
+	var own Because[testReason]
+	if !errors.As(chain, &own) {
+		t.Fatalf("As failed to match the carrier's own domain: %v", own)
 	}
 
-	if got, ok := errors.AsType[Because[otherReason]](chain); ok {
-		t.Fatalf("AsType matched a Because[testReason] as Because[otherReason]: %v", got)
+	var other Because[otherReason]
+	if errors.As(chain, &other) {
+		t.Fatalf("As matched a Because[testReason] as Because[otherReason]: %v", other)
 	}
 }
 

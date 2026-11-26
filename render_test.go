@@ -21,13 +21,6 @@ type testContext string
 // renderText is a named kind for expected and rendered refusal messages.
 type renderText string
 
-// because assembles a Because with the given slots — the shape most render
-// tests construct. Reason carries the generic parameter, so pass a typed
-// reason (e.g. testRefused) to pin the domain.
-func because[R any](what Refusal, reason R, cause error) Because[R] {
-	return Because[R]{What: what, Reason: reason, Cause: cause}
-}
-
 // assertRender pins both surfaces: Verdict owns the label, Error omits it.
 // For follow-up checks call b.Error() or b.Verdict() again.
 func assertRender[R any](t *testing.T, b Because[R], want renderText) {
