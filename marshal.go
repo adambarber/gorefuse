@@ -11,16 +11,7 @@ type jsonCause string
 // renderer is not the only output surface of a refusal.
 func (r Refusal) MarshalJSON() ([]byte, error) {
 	n := r.normalize()
-
-	subject := n.Subject
-	if n.Sensitive&SubjectSensitive != 0 {
-		subject = Subject(Redacted)
-	}
-
-	why := n.Why
-	if n.Sensitive&WhySensitive != 0 {
-		why = Why(Redacted)
-	}
+	file, line := structuredFrame(n)
 
 	encoded, err := json.Marshal(struct {
 		File      File      `json:"File"`
@@ -29,10 +20,10 @@ func (r Refusal) MarshalJSON() ([]byte, error) {
 		Line      Line      `json:"Line"`
 		Sensitive Sensitive `json:"Sensitive"`
 	}{
-		File:      n.File,
-		Subject:   subject,
-		Why:       why,
-		Line:      n.Line,
+		File:      file,
+		Subject:   structuredSubject(n),
+		Why:       structuredWhy(n),
+		Line:      line,
 		Sensitive: n.Sensitive,
 	})
 	if err != nil {

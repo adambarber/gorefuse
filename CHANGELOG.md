@@ -2,7 +2,8 @@
 
 ## v0.2.1
 
-- `MarshalJSON` and `slog.LogValuer` carry the same slot decisions as the prose renderer: marked Subject and Why become `[redacted]`, and a marked Cause is omitted.
+- `fmt` verbs (including `%#v`), `MarshalJSON`, and `slog.LogValuer` carry the same slot decisions as the prose renderer, on both the carrier and a bare `Refusal`: marked Subject and Why become `[redacted]`, and a marked Cause is omitted.
+- The frame guard now applies to structured output too; a hostile file renders `<invalid-frame>` with line 0 in JSON and slog.
 - Added `Refuse`, `Wrap`, and `Join` constructors; `Join` composes causes with `errors.Join` and keeps standard `errors.Is`/`errors.As` traversal.
 - Lowered the Go floor from 1.27 to 1.21; the shipped package needs only generics and stdlib basics.
 - The render contract is documented as a pinned prose shape, not immutable bytes before v1.0.

@@ -150,20 +150,63 @@ type causeText string
 func (b Because[R]) LogValue() slog.Value {
 	n := b.What.normalize()
 
-	attrs := []slog.Attr{
-		slog.String("reason", string(reasonTextOf(b.Reason))),
-		slog.String("file", string(n.File)),
-		slog.Int("line", int(n.Line)),
-		slog.String("subject", string(structuredSubject(n))),
-		slog.String("why", string(structuredWhy(n))),
-		slog.Bool("sensitive", n.Sensitive != 0),
-	}
-
+	attrs := append([]slog.Attr{slog.String("reason", string(reasonTextOf(b.Reason)))}, refusalAttrs(n)...)
 	if b.Cause != nil && n.Sensitive&CauseSensitive == 0 {
 		attrs = append(attrs, slog.String("cause", string(causeTextOf(b.Cause))))
 	}
 
 	return slog.GroupValue(attrs...)
+}
+
+// LogValue makes a bare Refusal safe in both slog handlers.
+func (r Refusal) LogValue() slog.Value { return slog.GroupValue(refusalAttrs(r.normalize())...) }
+
+// String and GoString keep fmt's default verbs from reflecting raw secret slots.
+func (r Refusal) String() string {
+	n := r.normalize()
+	file, line := structuredFrame(n)
+
+	return fmt.Sprintf("{%s %s %s %d %d}", file, structuredSubject(n), structuredWhy(n), line, n.Sensitive)
+}
+
+func (r Refusal) GoString() string {
+	n := r.normalize()
+	file, line := structuredFrame(n)
+
+	return fmt.Sprintf("gorefuse.Refusal{File:%q, Subject:%q, Why:%q, Line:%d, Sensitive:%#x}",
+		file, structuredSubject(n), structuredWhy(n), line, n.Sensitive)
+}
+
+func (b Because[R]) GoString() string {
+	n := b.What.normalize()
+
+	cause := causeText("")
+	if b.Cause != nil && n.Sensitive&CauseSensitive == 0 {
+		cause = causeTextOf(b.Cause)
+	}
+
+	return fmt.Sprintf("gorefuse.Because[%T]{Reason:%q, Cause:%q, What:%#v}",
+		b.Reason, reasonTextOf(b.Reason), cause, n)
+}
+
+func refusalAttrs(n Refusal) []slog.Attr {
+	file, line := structuredFrame(n)
+
+	return []slog.Attr{
+		slog.String("file", string(file)),
+		slog.Int("line", int(line)),
+		slog.String("subject", string(structuredSubject(n))),
+		slog.String("why", string(structuredWhy(n))),
+		slog.Bool("sensitive", n.Sensitive != 0),
+	}
+}
+
+func structuredFrame(r Refusal) (File, Line) {
+	if r.frame() == invalidFrame {
+		return File(invalidFrame), 0
+	}
+
+	return r.File, r.Line
 }
 
 func reasonTextOf[R any](reason R) reasonText { return reasonText(fmt.Sprint(reason)) }

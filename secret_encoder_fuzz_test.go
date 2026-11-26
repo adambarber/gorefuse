@@ -39,8 +39,11 @@ func FuzzRedactionAcrossEncoders(f *testing.F) {
 			"Error":       b.Error(),
 			"Verdict":     b.Verdict(),
 			"GoString":    fmt.Sprintf("%+v", b),
+			"GoSharp":     fmt.Sprintf("%#v", b),
 			"JSON":        string(encoded),
+			"RefusalFmt":  string(refusalFmt(b.What)),
 			"RefusalJSON": string(jsonMustMarshal(t, b.What)),
+			"RefusalSlog": string(slogMustText(t, b.What)),
 			"SlogJSON":    string(slogMustJSON(t, b)),
 		}
 
@@ -80,4 +83,33 @@ func slogMustJSON(t *testing.T, v Because[encoderReason]) encoderOutput {
 	logger.Info("refusal", "error", v)
 
 	return encoderOutput(out.String())
+}
+
+func refusalFmt(r Refusal) encoderOutput {
+	return encoderOutput(fmt.Sprintf("%v %+v %#v", r, r, r))
+}
+
+func slogMustText(t *testing.T, r Refusal) encoderOutput {
+	t.Helper()
+
+	var out bytes.Buffer
+
+	logger := slog.New(slog.NewTextHandler(&out, nil))
+	logger.Info("refusal", "what", r)
+
+	return encoderOutput(out.String())
+}
+
+func TestStructuredFrameGuard(t *testing.T) {
+	b := Refuse(encoderReason("denied"),
+		At(File("evil\n10.0.0.1:9"), 7, Subject("s"), Why("")))
+
+	out := string(slogMustJSON(t, b))
+	if !strings.Contains(out, "<invalid-frame>") {
+		t.Fatalf("structured output lost the frame guard: %s", out)
+	}
+
+	if strings.Contains(out, "10.0.0.1") {
+		t.Fatalf("structured output carried a hostile file: %s", out)
+	}
 }

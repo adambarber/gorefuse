@@ -69,7 +69,7 @@ gorefuse is a small, opinionated answer: a refusal has a where (`File`, `Line`),
 Render order is fixed: **verdict label → frame → reason → subject → cause tail → fix sentence**. Every slot is scrubbed and then trimmed; an empty-after-scrub slot contributes nothing and no connector.
 
 - **One verdict at line start in `Verdict()`.** `Error()` carries the same bytes without the label, so wrapping reads `starting server: server.go:42: ...`. Invalid UTF-8 and ESC become U+FFFD; `\r`, `\n`, `\v`, `\f`, NUL, U+0085, U+2028 and U+2029 become spaces. A hostile slot cannot forge a second line-start `Error:`.
-- **Grep-able frame.** `At` accepts every file name; a name that would forge a `file:line` pairing renders as `<invalid-frame>` with no line. A non-positive line never pairs. A `File` ending in `:` followed by non-ASCII digits is prose by contract; only ASCII `:digits` is the pairing grammar.
+- **Grep-able frame.** `At` accepts every file name; a name that would forge a `file:line` pairing renders as `<invalid-frame>` with no line in prose, JSON, and slog. A non-positive line never pairs. A `File` ending in `:` followed by non-ASCII digits is prose by contract; only ASCII `:digits` is the pairing grammar.
 - **Marked slots are redacted.** A marked `Subject` or `Why` renders as `[redacted]`; a marked `Cause` renders nothing. Marked cause slots still unwrap. Unknown sensitive bits fail closed on every construction path.
 - **Reason identity, not reason words.** `Is` matches only an error-kinded reason; a non-error reason domain is matched with `errors.As` on the carrier. A nil target never matches and another reason type never bridges domains.
 - **The zero value is an empty error.** A zero `Because[R]` renders `""` and is still a non-nil `error`.
@@ -100,7 +100,7 @@ fmt.Println(b.Verdict())
 // Error: server.go:42: denied: [redacted]
 ```
 
-To prove how a value was classified, match the carrier with `errors.As` and inspect `What.Sensitive`; the string alone cannot tell you. `MarshalJSON` and `slog.LogValuer` carry the same slot decisions, so a marked subject or fix becomes `[redacted]` in structured logs too.
+To prove how a value was classified, match the carrier with `errors.As` and inspect `What.Sensitive`; the string alone cannot tell you. `fmt`'s default verbs, `%#v`, `MarshalJSON`, and `slog.LogValuer` all apply the same slot decisions, including on a bare `Refusal`, so a marked subject or fix becomes `[redacted]` everywhere.
 
 ## Comparison
 
