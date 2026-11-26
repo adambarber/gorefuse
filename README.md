@@ -119,7 +119,7 @@ To prove how a value was classified, match the carrier with `errors.As` and insp
 
 Pre-1.0. Unreleased on `main`; the next tag will be `v0.2.0` and the last tag is `v0.1.1`. The pending release moves the verdict label from `Error()` to `Verdict()`, flattens every line break, makes `At` total on file names, and narrows `Is` to error-kinded reasons. Exact-byte pins were updated in the same commits.
 
-[![PkgGoDev](https://pkg.go.dev/badge/github.com/adambarber/gorefuse)](https://pkg.go.dev/github.com/adambarber/gorefuse)
+[![PkgGoDev](https://pkg.go.dev/badge/github.com/adambarber/gorefuse)](https://pkg.go.dev/github.com/adambarber/gorefuse) [![codecov](https://codecov.io/gh/adambarber/gorefuse/branch/main/graph/badge.svg)](https://app.codecov.io/gh/adambarber/gorefuse)
 
 ## License
 
